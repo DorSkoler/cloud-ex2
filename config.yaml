@@ -13,7 +13,7 @@ Instance:
 Commands:
   - sudo apt-get update
   - sudo apt-get install -y python3-pip git
-  - git clone https://github.com/yongarber/cloud-computing-ex1.git
+  - git clone https://github.com/DorSkoler/cloud-ex2.git
   - cd cloud-ex2 && git pull
   - sudo pip3 install -r cloud-ex2/requirements.txt
   - nohup sudo python3 cloud-ex2/server.py --port 5000 > server.log 2>&1 &
