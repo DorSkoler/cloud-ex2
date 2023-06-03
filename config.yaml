@@ -8,7 +8,7 @@ EC2:
   MaxCount: 1
 
 Instance:
-  InstanceName: my-instance-parkinglot-app
+  InstanceName: my-instance-app
 
 Commands:
   - sudo apt-get update
