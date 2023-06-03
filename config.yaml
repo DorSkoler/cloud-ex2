@@ -1,0 +1,20 @@
+EC2:
+  GroupName: my-app
+  Description: My App
+  KeyName: my-app-keypair
+  ImageId: ami-007855ac798b5175e
+  InstanceType: t2.micro
+  MinCount: 1
+  MaxCount: 1
+
+Instance:
+  InstanceName: my-instance-parkinglot-app
+
+Commands:
+  - sudo apt-get update
+  - sudo apt-get install -y python3-pip git
+  - git clone https://github.com/yongarber/cloud-computing-ex1.git
+  - cd cloud-ex2 && git pull
+  - sudo pip3 install -r cloud-ex2/requirements.txt
+  - nohup sudo python3 cloud-ex2/server.py --port 5000 > server.log 2>&1 &
+  - nohup sudo python3 cloud-ex2/server.py --port 5001 > server.log 2>&1 &
