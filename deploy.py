@@ -59,7 +59,10 @@ def main():
         KeyName=config['EC2']['KeyName'],
         MinCount=int(config['EC2']['MinCount']),
         MaxCount=int(config['EC2']['MaxCount']),
-        SecurityGroupIds=[security_group['GroupId']]
+        SecurityGroupIds=[security_group['GroupId']],
+        IamInstanceProfile={
+        'Arn': 'arn:aws:iam::123456789012:role/your-iam-role-name'
+        }
     )['Instances']
 
     # Add a name tag to each instance
@@ -119,6 +122,32 @@ def main():
     # Close SSH connections
     for _, ssh in ssh_clients:
         ssh.close()
+
+# Create a Boto3 IAM client
+iam_client = boto3.client('iam')
+
+# Define the role name and trust policy
+role_name = 'YourRoleName'
+trust_policy = {
+    'Version': '2012-10-17',
+    'Statement': [{
+        'Effect': 'Allow',
+        'Principal': {
+            'Service': 'ec2.amazonaws.com'
+        },
+        'Action': 'sts:AssumeRole'
+    }]
+}
+
+# Create the IAM role
+response = iam_client.create_role(
+    RoleName=role_name,
+    AssumeRolePolicyDocument=json.dumps(trust_policy)
+)
+
+# Print the ARN of the created role
+print(f"Created IAM role ARN: {response['Role']['Arn']}")
+
 
 if __name__ == '__main__':
     main()
