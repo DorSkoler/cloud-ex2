@@ -21,7 +21,7 @@ def getInstanceId():
 
 @app.route('/newNode', methods=['POST'])
 def getNewNode():
-    nodes.append(json.loads(request.data))
+    nodes = json.loads(request.data)
     print(nodes, instanceId)
     if len(nodes) > 0 and instanceId != '':
         return loop()

@@ -27,6 +27,7 @@ class EndpointNode:
         # rate limit - number of new workers per time period
         # rate limit - total number of new workers
         if Date.now - workQueue.peek().time > 15sec:
+            
             if numOfWorkers < maxNumOfWorkers:
                 spawnWorker()
             else:
@@ -46,11 +47,11 @@ class EndpointNode:
         return workQueue.pop() or None
 
     def pullComplete(n):
-        results = workComplete.take👎
-        if len(results) > 0:
-            return results
+        
+        if len(completed) > 0:
+            return completed.pop(n)
         try:
-            return otherNode.pullCompleteInternal👎
+            return otherNode.pullCompleteInternal(n)
         except:
             return []
 

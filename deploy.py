@@ -3,6 +3,7 @@ import paramiko
 import urllib.request
 import time
 import yaml
+import requests
 
 def main():
     # Read configuration from file
@@ -99,6 +100,21 @@ def main():
 
     time.sleep(10)
 
+    # Create an array with the original order
+    array1 = ['http://' + ip + ':443' for ip in statuses.values()]
+    # Create an array with the opposite order
+    array2 = ['http://' + ip + ':443' for ip in reversed(statuses.values())]
+    def http_post(url, data):
+        try:
+            response = requests.post(url, data=data)
+            response.raise_for_status()  # Raise an exception for non-2xx status codes
+            return response.text
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
+            return None
+    http_post(array1[0] + '/ip', array1)
+    http_post(array2[0] + '/ip', array2)
+    
     # Connect to the instances via SSH
     ssh_clients = []
     for instance_id, instance_ip in statuses.items():
