@@ -55,29 +55,6 @@ class EndpointNode:
             return []
 
 
-class Worker:
-    # ec2 - terminate on shutdown
-
-    def DoWork(t):
-        pass
-
-    def loop():
-        nodes = [Noa, Avishag]
-        lastTime = Date.now
-        while Date.Now - lastTime <= 10Min:
-            for i in range(nodes):
-                work = nodes[i].giveMeWork() 
-                if work != None:
-                    result = DoWork(work)
-                    nodes[i].completed(result)
-                    lastTime = Date.now
-                    continue
-
-            sleep(100)
-
-        parent.WorkerDone()
-
-
 # nohup python3 my-script.py noa avishag
 
 
