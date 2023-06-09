@@ -71,7 +71,7 @@ def loop():
 
             if work != '':
                 result = process_work(work)
-                http_post(f'{node}/completeWork', result)
+                http_post(f'{node}/completeWork', [ result, work['work_id'] ])
                 lastTime = datetime.datetime.now()
                 continue
 
