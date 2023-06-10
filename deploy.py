@@ -5,6 +5,7 @@ import time
 import yaml
 import json
 import requests
+import os;
 
 # Read configuration from file
 with open('config.yaml') as file:
@@ -210,10 +211,11 @@ def create_security_group_id():
     
 def notify_new_instance(statuses):
     # Create an array with the original order
-    array1 = ['http://' + ip + ':5000' for ip in statuses.values()]
+    array1 = [('ip', 'http://' + ip + ':5000') for ip in statuses.values()]
     
-    # Create an array with the opposite order
-    array2 = ['http://' + ip + ':5000' for ip in reversed(statuses.values())]
+    # Create a list of URLs with the opposite order
+    array2 = [('ip', 'http://' + ip + ':5000') for ip in reversed(statuses.values())]
+    
     def http_post(url, data):
         try:
             response = requests.post(url, data=data)
@@ -222,8 +224,8 @@ def notify_new_instance(statuses):
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             return None
-    http_post(array1[0] + '/ip', array1)
-    http_post(array2[0] + '/ip', array2)
+    http_post(array1[0][1] + '/ip', array1)
+    http_post(array2[0][1] + '/ip', array2)
 
 def create_key_pair(KeyName):
     # Check if the key pair already exists
@@ -243,6 +245,8 @@ def create_key_pair(KeyName):
     # Save the private key to a file
     with open(f'{KeyName}.pem', 'w') as file:
         file.write(key_pair['KeyMaterial'])
+        
+    os.chmod(f'{KeyName}.pem', 0o400)
         
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
     
@@ -264,7 +268,7 @@ def ssh_and_run_code(statuses):
     # Execute commands on instances using SSH
     for instance_id, ssh in ssh_clients:
         print(f"Executing commands on instance {instance_id}...")
-        for command in config['Commands'].values():
+        for command in config['Commands']:
             print(f"Executing command: {command}")
             stdin, stdout, stderr = ssh.exec_command(command)
             print(stdout.read().decode())
