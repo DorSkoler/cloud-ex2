@@ -7,6 +7,7 @@ import threading
 import json
 import datetime
 import uuid
+import paramiko
 
 
 '''
@@ -162,6 +163,10 @@ def launch_ec2_instance():
                 workers[instance_id] = instance.PublicIpAddress
             break
         time.sleep(5)
+        
+    # add and run code on worker
+    ssh_and_run_code(workers[instance_id])
+        
     url = f'http://{workers[instance_id]}:443/instanceId'
     url2 = f'http://{workers[instance_id]}:443/newNode'
     http_post(url, instance_id)
@@ -202,6 +207,25 @@ def get_completed_work(n):
             return data['work_items']
         else:
             return []
+        
+def ssh_and_run_code(instance_ip):
+    # Connect to the instances via SSH
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    
+    ssh.connect(
+        hostname=instance_ip,
+        username='ubuntu',
+        key_filename=config['EC2']['KeyName'] + '.pem'
+    )
+
+    for command in config['CommandsWorker'].values():
+        stdin, stdout, stderr = ssh.exec_command(command)
+        print(stdout.read().decode())
+        print(stderr.read().decode())
+
+    # Close SSH connections
+    ssh.close()
 
 if __name__ == '__main__':
     # Create and start the server thread

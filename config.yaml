@@ -1,15 +1,13 @@
 EC2:
-  GroupName: my-app
-  Description: My App
-  KeyName: my-app-keypair
+  GroupName: EX2-group
+  Description: EX2
+  KeyName: ex2-keypair
   ImageId: ami-007855ac798b5175e
   InstanceType: t2.micro
   MinCount: 1
   MaxCount: 1
   region: us-east-1
-
-Instance:
-  InstanceName: my-instance-app
+  RoleName: ex2-role
 
 Commands:
   - sudo apt-get update
@@ -17,4 +15,12 @@ Commands:
   - git clone https://github.com/DorSkoler/cloud-ex2.git
   - cd cloud-ex2 && git pull
   - sudo pip3 install -r cloud-ex2/requirements.txt
-  - nohup sudo python3 cloud-ex2/server.py --port 5000 > server.log 2>&1 &
+  - nohup sudo python3 cloud-ex2/app.py --port 5000 > app.log 2>&1 &
+
+CommandsWorker:
+  - sudo apt-get update
+  - sudo apt-get install -y python3-pip git
+  - git clone https://github.com/DorSkoler/cloud-ex2.git
+  - cd cloud-ex2 && git pull
+  - sudo pip3 install -r cloud-ex2/requirements.txt
+  - nohup sudo python3 cloud-ex2/worker.py --port 5000 > worker.log 2>&1 &
