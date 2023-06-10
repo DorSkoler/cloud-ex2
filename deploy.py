@@ -189,13 +189,13 @@ def create_security_group_id():
                 'IpProtocol': 'tcp',
                 'FromPort': 22,
                 'ToPort': 22,
-                'IpRanges': [{'CidrIp': my_ip + '/32'}]
+                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
             },
             {
                 'IpProtocol': 'tcp',
                 'FromPort': 443,
                 'ToPort': 443,
-                'IpRanges': [{'CidrIp': my_ip + '/32'}]
+                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
             },
             {
                 'IpProtocol': 'tcp',
@@ -303,7 +303,4 @@ def main():
         print(f'node {index} - {node}')
 
 if __name__ == '__main__':
-    ssh_and_run_code({
-        'i-09e50661ad48e4f6a': '44.203.183.137',
-        'i-0e346f812f11f929e': '52.87.226.145'
-    })
+    main()
