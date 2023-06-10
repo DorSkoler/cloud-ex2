@@ -142,53 +142,39 @@ def http_post(url, data):
         return None
 
 def launch_ec2_instance():
-    print('launch ec2')
     global workers
-    with lockWorkers:
-        workers[1] = 1
-        workers[2] = 1
-        workers[3] = 1
-        workers[4] = 1
-        workers[5] = 1
-    # response = ec2_client.run_instances(
-    #     ImageId=config['EC2']['ImageId'],
-    #     InstanceType=config['EC2']['InstanceType'],
-    #     KeyName=config['EC2']['KeyName'],
-    #     SecurityGroupIds=config['EC2']['GroupName'],
-    #     MinCount=1,
-    #     MaxCount=1
-    # )
-    # instance_id = response['Instances'][0]['InstanceId']
+    response = ec2_client.run_instances(
+        ImageId=config['EC2']['ImageId'],
+        InstanceType=config['EC2']['InstanceType'],
+        KeyName=config['EC2']['KeyName'],
+        SecurityGroupIds=config['EC2']['GroupName'],
+        MinCount=1,
+        MaxCount=1
+    )
+    instance_id = response['Instances'][0]['InstanceId']
 
-    # # Wait for the instance to have an IP address
-    # while True:
-    #     response = ec2_client.describe_instances(InstanceIds=[instance_id])
-    #     instance = response['Reservations'][0]['Instances'][0]
-    #     if 'PublicIpAddress' in instance:
-    #         global workers
-    #         with lockWorkers:
-    #             workers[instance_id] = instance.PublicIpAddress
-    #         break
-    #     time.sleep(5)
-    # url = f'http://{workers[instance_id]}:443/instanceId'
-    # url2 = f'http://{workers[instance_id]}:443/newNode'
-    # http_post(url, instance_id)
-    # http_post(url2, nodes)
-    # print(f"Launched EC2 instance: {instance_id}")
-    return
+    # Wait for the instance to have an IP address
+    while True:
+        response = ec2_client.describe_instances(InstanceIds=[instance_id])
+        instance = response['Reservations'][0]['Instances'][0]
+        if 'PublicIpAddress' in instance:
+            with lockWorkers:
+                workers[instance_id] = instance.PublicIpAddress
+            break
+        time.sleep(5)
+    url = f'http://{workers[instance_id]}:443/instanceId'
+    url2 = f'http://{workers[instance_id]}:443/newNode'
+    http_post(url, instance_id)
+    http_post(url2, nodes)
+    print(f"Launched EC2 instance: {instance_id}")
 
 def terminate_ec2_instance(instance_id):
-    print('terminate ec2')
     global workers
+    response = ec2_client.terminate_instances(InstanceIds=[instance_id])
     with lockWorkers:
-        del workers[-1]
-    # response = ec2_client.terminate_instances(InstanceIds=[instance_id])
-    # global workers
-    # with lockWorkers:
-    #     del workers[instance_id]
-    # print(f"Terminating EC2 instance: {instance_id}")
-    # return response
-    return 'hi'
+        del workers[instance_id]
+    print(f"Terminating EC2 instance: {instance_id}")
+    return response
 
 def get_completed_work(n):
     global completed_work
