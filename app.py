@@ -39,7 +39,7 @@ lockQueue = threading.Lock()
 main functions
 '''
 def run_server():
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5000)
 
 
 def check_workers():
