@@ -23,14 +23,16 @@ def open_iam_role_to_ec2(role_name):
     Returns:
         str: The ARN of the IAM role's instance profile.
     """
-
+    instance_profile_name = role_name + "-InstanceProfile"
     try:
         role = iam_client.get_role(RoleName=role_name)
         instance_profile_arn = role['Role']['Arn']
         print(f'Role exists - ARN: {instance_profile_arn}')
-        return instance_profile_arn
+        existing_profile = iam_client.get_instance_profile(InstanceProfileName=instance_profile_name)
+        instance_profile_arn = existing_profile['InstanceProfile']['Arn']
+        print(f'Instance profile exists - ARN: {instance_profile_arn}')
+        return instance_profile_name
     except iam_client.exceptions.NoSuchEntityException:
-        # Role does not exist, so create a new one
         pass
     
     # Create the IAM role
@@ -69,7 +71,7 @@ def open_iam_role_to_ec2(role_name):
     )
 
     # Attach the role to an instance profile
-    instance_profile_name = role_name + "-InstanceProfile"
+    
     iam_client.create_instance_profile(InstanceProfileName=instance_profile_name)
     iam_client.add_role_to_instance_profile(
         InstanceProfileName=instance_profile_name,
@@ -248,6 +250,7 @@ def ssh_and_run_code(statuses):
     # Connect to the instances via SSH
     ssh_clients = []
     for instance_id, instance_ip in statuses.items():
+        print(f"Connecting to instance {instance_id} at {instance_ip}...")
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
        
@@ -260,13 +263,16 @@ def ssh_and_run_code(statuses):
 
     # Execute commands on instances using SSH
     for instance_id, ssh in ssh_clients:
+        print(f"Executing commands on instance {instance_id}...")
         for command in config['Commands'].values():
+            print(f"Executing command: {command}")
             stdin, stdout, stderr = ssh.exec_command(command)
             print(stdout.read().decode())
             print(stderr.read().decode())
 
     # Close SSH connections
-    for _, ssh in ssh_clients:
+    for instance_id, ssh in ssh_clients:
+        print(f"Closing SSH connection to instance {instance_id}...")
         ssh.close()
 
 def main():
@@ -287,6 +293,7 @@ def main():
     public_ip, instance_id = create_ec2_instance(instance_profile_name, security_group_id, 'node2')
     statuses[instance_id] = public_ip
     
+    time.sleep(10)
     ssh_and_run_code(statuses)
     time.sleep(5)
     notify_new_instance(statuses)
@@ -296,4 +303,7 @@ def main():
         print(f'node {index} - {node}')
 
 if __name__ == '__main__':
-    main()
+    ssh_and_run_code({
+        'i-09e50661ad48e4f6a': '44.203.183.137',
+        'i-0e346f812f11f929e': '52.87.226.145'
+    })
