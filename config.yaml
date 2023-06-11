@@ -16,6 +16,7 @@ Commands:
   - cd cloud-ex2 && git pull
   - sudo pip3 install -r cloud-ex2/requirements.txt
   - nohup sudo python3 cloud-ex2/app.py --port 5000 > app.log 2>&1 &
+  - echo Running Application
 
 CommandsWorker:
   - sudo apt-get update

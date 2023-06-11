@@ -14,7 +14,7 @@ import paramiko
 init
 '''
 # Read configuration from file
-with open('config.yaml') as file:
+with open('./config.yaml') as file:
     config = yaml.safe_load(file)
 
 ec2_client = boto3.client('ec2', region_name=config['EC2']['region'])
@@ -39,7 +39,7 @@ lockQueue = threading.Lock()
 main functions
 '''
 def run_server():
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0')
 
 
 def check_workers():
