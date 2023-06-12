@@ -151,21 +151,23 @@ def launch_ec2_instance():
         SecurityGroupIds=[config['EC2']['GroupName']],
         MinCount=1,
         MaxCount=1,
-        InstanceInitiatedShutdownBehavior='terminate'
-        # TagSpecifications=[
-        #     {
-        #         'ResourceType': 'instance',
-        #         'Tags': [
-        #             {
-        #                 'Key': 'Name',
-        #                 'Value': f'worker{len(workers)}-of-{nodes[0]}'
-        #             },
-        #         ]
-        #     },
-        # ]
+        InstanceInitiatedShutdownBehavior='terminate',
+        TagSpecifications=[
+            {
+                'ResourceType': 'instance',
+                'Tags': [
+                    {
+                        'Key': 'Name',
+                        'Value': f'worker{len(workers)}-of-{nodes[0]}'
+                    },
+                ]
+            },
+        ]
     )
     instance_id = response['Instances'][0]['InstanceId']
-
+    
+    waiter = ec2_client.get_waiter('instance_running')
+    waiter.wait(InstanceIds=[instance_id])
     # Wait for the instance to have an IP address
     while True:
         response = ec2_client.describe_instances(InstanceIds=[instance_id])

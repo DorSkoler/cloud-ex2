@@ -59,7 +59,8 @@ def open_iam_role_to_ec2(role_name):
             "Action": [
                 "ec2:RunInstances",
                 "ec2:TerminateInstances",
-                "ec2:DescribeInstances"
+                "ec2:DescribeInstances",
+                "ec2:CreateTags"
             ],
             "Resource": "*"
         }]
