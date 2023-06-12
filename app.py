@@ -177,7 +177,9 @@ def launch_ec2_instance():
                 workers[instance_id] = instance['PublicIpAddress']
             break
         time.sleep(5)
-        
+    
+    # TODO : add pem creation and download to file system
+      
     # add and run code on worker
     ssh_and_run_code(workers[instance_id])
         
