@@ -158,7 +158,7 @@ def launch_ec2_instance():
                 'Tags': [
                     {
                         'Key': 'Name',
-                        'Value': f'worker{len(workers)}-of-{nodes[0]}'
+                        'Value': f'worker-{datetime.datetime.now()}-of-{nodes[0]}'
                     },
                 ]
             },
