@@ -3,3 +3,4 @@ boto3==1.18.41
 requests==2.26.0
 PyYAML==5.4.1
 paramiko==2.8.0
+os
