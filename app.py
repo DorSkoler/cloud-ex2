@@ -150,7 +150,8 @@ def launch_ec2_instance():
         KeyName=config['EC2']['KeyName'],
         SecurityGroupIds=config['EC2']['GroupName'],
         MinCount=1,
-        MaxCount=1
+        MaxCount=1,
+        InstanceInitiatedShutdownBehavior='terminate' 
     )
     instance_id = response['Instances'][0]['InstanceId']
 
