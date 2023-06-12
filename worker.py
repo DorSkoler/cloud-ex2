@@ -4,6 +4,7 @@ import requests
 import datetime
 import time
 import json
+import os
 
 app = Flask(__name__)
 
@@ -60,7 +61,8 @@ def http_get(url):
         return None
 
 def killMe():
-    return http_post(f'{nodes[0]}/killMe', instanceId)
+    os.system('sudo shutdown -h now')
+    return "killing the worker" + str(instanceId)
 
 def loop():
     lastTime = datetime.datetime.now()
