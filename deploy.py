@@ -224,8 +224,8 @@ def notify_new_instance(statuses):
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             return None
-    http_post(array1[0][1] + '/ip', array1)
-    http_post(array2[0][1] + '/ip', array2)
+    print(http_post(array1[0][1] + '/ip', json.dumps(array1)))
+    print(http_post(array2[0][1] + '/ip', json.dumps(array2)))
 
 def create_key_pair(KeyName):
     # Check if the key pair already exists

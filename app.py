@@ -148,7 +148,7 @@ def launch_ec2_instance():
         ImageId=config['EC2']['ImageId'],
         InstanceType=config['EC2']['InstanceType'],
         KeyName=config['EC2']['KeyName'],
-        SecurityGroupIds=config['EC2']['GroupName'],
+        SecurityGroupIds=[config['EC2']['GroupName']],
         MinCount=1,
         MaxCount=1,
         InstanceInitiatedShutdownBehavior='terminate' 
