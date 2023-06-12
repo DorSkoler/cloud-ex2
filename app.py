@@ -174,7 +174,7 @@ def launch_ec2_instance():
         instance = response['Reservations'][0]['Instances'][0]
         if 'PublicIpAddress' in instance:
             with lockWorkers:
-                workers[instance_id] = instance.PublicIpAddress
+                workers[instance_id] = instance['PublicIpAddress']
             break
         time.sleep(5)
         
