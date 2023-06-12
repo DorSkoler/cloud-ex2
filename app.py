@@ -151,18 +151,18 @@ def launch_ec2_instance():
         SecurityGroupIds=[config['EC2']['GroupName']],
         MinCount=1,
         MaxCount=1,
-        InstanceInitiatedShutdownBehavior='terminate',
-        TagSpecifications=[
-            {
-                'ResourceType': 'instance',
-                'Tags': [
-                    {
-                        'Key': 'Name',
-                        'Value': f'worker{len(workers)}-of-{nodes[0]}'
-                    },
-                ]
-            },
-        ]
+        InstanceInitiatedShutdownBehavior='terminate'
+        # TagSpecifications=[
+        #     {
+        #         'ResourceType': 'instance',
+        #         'Tags': [
+        #             {
+        #                 'Key': 'Name',
+        #                 'Value': f'worker{len(workers)}-of-{nodes[0]}'
+        #             },
+        #         ]
+        #     },
+        # ]
     )
     instance_id = response['Instances'][0]['InstanceId']
 

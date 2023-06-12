@@ -129,7 +129,10 @@ def create_ec2_instance(iam_role, security_group_id, instance_name):
         ]
     )
 
+    
     instance_id = response['Instances'][0]['InstanceId']
+    waiter = ec2_client.get_waiter('instance_running')
+    waiter.wait(InstanceIds=[instance_id])
     # Wait for the instance to have an IP address
     while True:
         response = ec2_client.describe_instances(InstanceIds=[instance_id])
@@ -139,10 +142,7 @@ def create_ec2_instance(iam_role, security_group_id, instance_name):
         time.sleep(5)
 
     public_ip = instance['PublicIpAddress']
-    print(f'ec2 created - {instance_id},  {public_ip}')
-    
-    waiter = ec2_client.get_waiter('instance_running')
-    waiter.wait(InstanceIds=[instance_id])
+    print(f'ec2 created - {instance_id},  {public_ip}')  
     
     response = ec2_client.associate_iam_instance_profile(
         IamInstanceProfile={
