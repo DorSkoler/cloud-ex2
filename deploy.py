@@ -58,7 +58,8 @@ def open_iam_role_to_ec2(role_name):
             "Effect": "Allow",
             "Action": [
                 "ec2:RunInstances",
-                "ec2:TerminateInstances"
+                "ec2:TerminateInstances",
+                "ec2:DescribeInstances"
             ],
             "Resource": "*"
         }]
@@ -115,9 +116,6 @@ def create_ec2_instance(iam_role, security_group_id, instance_name):
         MaxCount=1,
         KeyName=config['EC2']['KeyName'],
         SecurityGroupIds=[security_group_id],
-        # IamInstanceProfile={
-        #     'Arn': iam_role
-        # },
         TagSpecifications=[
             {
                 'ResourceType': 'instance',

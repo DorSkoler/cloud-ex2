@@ -151,7 +151,18 @@ def launch_ec2_instance():
         SecurityGroupIds=[config['EC2']['GroupName']],
         MinCount=1,
         MaxCount=1,
-        InstanceInitiatedShutdownBehavior='terminate' 
+        InstanceInitiatedShutdownBehavior='terminate',
+        TagSpecifications=[
+            {
+                'ResourceType': 'instance',
+                'Tags': [
+                    {
+                        'Key': 'Name',
+                        'Value': f'worker{len(workers)}'
+                    },
+                ]
+            },
+        ]
     )
     instance_id = response['Instances'][0]['InstanceId']
 
@@ -173,14 +184,6 @@ def launch_ec2_instance():
     http_post(url, instance_id)
     http_post(url2, nodes)
     print(f"Launched EC2 instance: {instance_id}")
-
-# def terminate_ec2_instance(instance_id):
-#     global workers
-#     response = ec2_client.terminate_instances(InstanceIds=[instance_id])
-#     with lockWorkers:
-#         del workers[instance_id]
-#     print(f"Terminating EC2 instance: {instance_id}")
-#     return response
 
 def get_completed_work(n):
     global completed_work
