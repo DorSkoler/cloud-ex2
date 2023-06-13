@@ -185,7 +185,9 @@ def launch_ec2_instance():
     
     # TODO : add pem creation and download to file system
     # add and run code on worker
-    ssh_and_run_code(workers[instance_id], keyName)
+    #ssh_and_run_code(workers[instance_id], keyName)
+    ssh_and_run_code(workers[instance_id])
+
         
     url = f'http://{workers[instance_id]}:443/instanceId'
     url2 = f'http://{workers[instance_id]}:443/newNode'
@@ -220,15 +222,15 @@ def get_completed_work(n):
         else:
             return []
         
-def ssh_and_run_code(instance_ip, keyName):
+def ssh_and_run_code(instance_ip):
     # Connect to the instances via SSH
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     ssh.connect(
         hostname=instance_ip,
-        username='ubuntu',
-        key_filename=keyName + '.pem'
+        username='ubuntu'
+        #key_filename=keyName + '.pem'
     )
 
     for command in config['CommandsWorker'].values():
