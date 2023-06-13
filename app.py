@@ -34,7 +34,7 @@ def create_key_pair(KeyName):
     print(f"Key pair '{KeyName}' created and saved to 'cloud-ex2/{KeyName}.pem'.")
     
 KeyName = str(datetime.datetime.now())
-create_key_pair(keyName)
+create_key_pair(KeyName)
 
 # In-memory queue to store the submitted work items
 queue = []
@@ -164,7 +164,7 @@ def launch_ec2_instance():
     response = ec2_client.run_instances(
         ImageId=config['EC2']['ImageId'],
         InstanceType=config['EC2']['InstanceType'],
-        KeyName=keyName,
+        KeyName=KeyName,
         SecurityGroupIds=[config['EC2']['GroupName']],
         MinCount=1,
         MaxCount=1,
