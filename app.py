@@ -153,7 +153,6 @@ def launch_ec2_instance():
         ImageId=config['EC2']['ImageId'],
         InstanceType=config['EC2']['InstanceType'],
         #KeyName=keyName,
-        KeyName=None,
         SecurityGroupIds=[config['EC2']['GroupName']],
         MinCount=1,
         MaxCount=1,
