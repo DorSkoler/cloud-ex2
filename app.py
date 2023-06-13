@@ -238,6 +238,7 @@ def get_completed_work(n):
         
 def ssh_and_run_code(instance_ip, KeyName):
     # Connect to the instances via SSH
+    print('Connected to Worker using SSH')
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
@@ -246,13 +247,15 @@ def ssh_and_run_code(instance_ip, KeyName):
         username='ubuntu',
         key_filename=KeyName + '.pem'
     )
-
-    for command in config['CommandsWorker'].values():
-        stdin, stdout, stderr = ssh.exec_command(command)
-        print(stdout.read().decode())
-        print(stderr.read().decode())
+        
+    for command in config['Commands']:
+            print(f"Executing command: {command}")
+            stdin, stdout, stderr = ssh.exec_command(command)
+            print(stdout.read().decode())
+            print(stderr.read().decode())
 
     # Close SSH connections
+    print('Closing SSH to Worker')
     ssh.close()
 
 if __name__ == '__main__':
