@@ -80,7 +80,8 @@ def open_iam_role_to_ec2(role_name):
                     "ec2:DescribeRouteTables",
                     "ec2:CreateTags",
                     "ec2:DeleteTags",
-                    "ec2:GetConsoleOutput"
+                    "ec2:GetConsoleOutput",
+                    "ec2-instance-connect:SendSSHPublicKey"
                 ],
                 "Resource": "*"
             }
