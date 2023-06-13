@@ -34,7 +34,7 @@ def create_key_pair(KeyName):
         
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
     
-KeyName = str(datetime.datetime.now())
+KeyName = str(datetime.datetime.now()).strip()
 create_key_pair(KeyName)
 
 # In-memory queue to store the submitted work items
