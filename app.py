@@ -33,8 +33,10 @@ def create_key_pair(KeyName):
     os.system(f'sudo chown ubuntu {KeyName}.pem')
         
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
-    
-KeyName = str(datetime.datetime.now()).strip()
+
+now_str = datetime.datetime.now()
+KeyName = now_str.strftime("%Y-%m-%d%H:%M:%S.%f").strip()
+ 
 create_key_pair(KeyName)
 
 # In-memory queue to store the submitted work items
