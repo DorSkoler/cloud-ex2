@@ -29,7 +29,8 @@ def create_key_pair(KeyName):
     with open(f'{KeyName}.pem', 'w') as file:
         file.write(key_pair['KeyMaterial'])
         
-    os.chmod(f'{KeyName}.pem', 0o400)
+    os.system(f'sudo chmod 400 {KeyName}.pem')
+    os.system(f'sudo chown ubuntu {KeyName}.pem')
         
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
     
