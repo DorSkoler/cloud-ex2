@@ -5,14 +5,15 @@ import time
 import yaml
 import json
 import requests
-import os;
+import os
 
 # Read configuration from file
 with open('config.yaml') as file:
     config = yaml.safe_load(file)
-    
+
 iam_client = boto3.client('iam', region_name='us-east-1')
 ec2_client = boto3.client('ec2', region_name='us-east-1')
+
 
 def open_iam_role_to_ec2(role_name):
     """
@@ -29,13 +30,14 @@ def open_iam_role_to_ec2(role_name):
         role = iam_client.get_role(RoleName=role_name)
         instance_profile_arn = role['Role']['Arn']
         print(f'Role exists - ARN: {instance_profile_arn}')
-        existing_profile = iam_client.get_instance_profile(InstanceProfileName=instance_profile_name)
+        existing_profile = iam_client.get_instance_profile(
+            InstanceProfileName=instance_profile_name)
         instance_profile_arn = existing_profile['InstanceProfile']['Arn']
         print(f'Instance profile exists - ARN: {instance_profile_arn}')
         return instance_profile_name
     except iam_client.exceptions.NoSuchEntityException:
         pass
-    
+
     # Create the IAM role
     role = iam_client.create_role(
         RoleName=role_name,
@@ -54,16 +56,35 @@ def open_iam_role_to_ec2(role_name):
     # Create the policy to allow EC2 actions
     policy = {
         "Version": "2012-10-17",
-        "Statement": [{
-            "Effect": "Allow",
-            "Action": [
-                "ec2:RunInstances",
-                "ec2:TerminateInstances",
-                "ec2:DescribeInstances",
-                "ec2:CreateTags"
-            ],
-            "Resource": "*"
-        }]
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ec2:DescribeInstances",
+                    "ec2:DescribeKeyPairs",
+                    "ec2:CreateKeyPair",
+                    "ec2:DeleteKeyPair",
+                    "ec2:CreateSecurityGroup",
+                    "ec2:DeleteSecurityGroup",
+                    "ec2:AuthorizeSecurityGroupIngress",
+                    "ec2:AuthorizeSecurityGroupEgress",
+                    "ec2:RevokeSecurityGroupIngress",
+                    "ec2:RevokeSecurityGroupEgress",
+                    "ec2:RunInstances",
+                    "ec2:TerminateInstances",
+                    "ec2:StartInstances",
+                    "ec2:StopInstances",
+                    "ec2:DescribeSecurityGroups",
+                    "ec2:DescribeSubnets",
+                    "ec2:DescribeVpcs",
+                    "ec2:DescribeRouteTables",
+                    "ec2:CreateTags",
+                    "ec2:DeleteTags",
+                    "ec2:GetConsoleOutput"
+                ],
+                "Resource": "*"
+            }
+        ]
     }
 
     # Attach the policy to the IAM role
@@ -74,8 +95,9 @@ def open_iam_role_to_ec2(role_name):
     )
 
     # Attach the role to an instance profile
-    
-    iam_client.create_instance_profile(InstanceProfileName=instance_profile_name)
+
+    iam_client.create_instance_profile(
+        InstanceProfileName=instance_profile_name)
     iam_client.add_role_to_instance_profile(
         InstanceProfileName=instance_profile_name,
         RoleName=role_name
@@ -91,6 +113,7 @@ def open_iam_role_to_ec2(role_name):
     print(f'Role created - ARN: {instance_profile_arn}')
 
     return instance_profile_name
+
 
 def create_ec2_instance(iam_role, security_group_id, instance_name):
     """
@@ -130,7 +153,6 @@ def create_ec2_instance(iam_role, security_group_id, instance_name):
         ]
     )
 
-    
     instance_id = response['Instances'][0]['InstanceId']
     waiter = ec2_client.get_waiter('instance_running')
     waiter.wait(InstanceIds=[instance_id])
@@ -143,8 +165,8 @@ def create_ec2_instance(iam_role, security_group_id, instance_name):
         time.sleep(5)
 
     public_ip = instance['PublicIpAddress']
-    print(f'ec2 created - {instance_id},  {public_ip}')  
-    
+    print(f'ec2 created - {instance_id},  {public_ip}')
+
     response = ec2_client.associate_iam_instance_profile(
         IamInstanceProfile={
             'Name': iam_role
@@ -153,6 +175,7 @@ def create_ec2_instance(iam_role, security_group_id, instance_name):
     )
 
     return public_ip, instance_id
+
 
 def create_security_group_id():
     # Check if the security group already exists
@@ -166,12 +189,13 @@ def create_security_group_id():
             ]
         )
         if existing_group['SecurityGroups']:
-            print(f'SecurityGroups exists - {existing_group["SecurityGroups"][0]["GroupId"]}')
+            print(
+                f'SecurityGroups exists - {existing_group["SecurityGroups"][0]["GroupId"]}')
             return existing_group['SecurityGroups'][0]['GroupId']
     except ec2_client.exceptions.ClientError:
         # Error occurred while describing security groups, assuming it doesn't exist
         pass
-    
+
     # Create a new security group
     security_group = ec2_client.create_security_group(
         GroupName=config['EC2']['GroupName'],
@@ -179,7 +203,8 @@ def create_security_group_id():
     )
 
     # Get public IP address
-    my_ip = urllib.request.urlopen('http://checkip.amazonaws.com/').read().decode('utf-8').strip()
+    my_ip = urllib.request.urlopen(
+        'http://checkip.amazonaws.com/').read().decode('utf-8').strip()
 
     # Authorize inbound traffic to security group from my IP address only
     ec2_client.authorize_security_group_ingress(
@@ -207,14 +232,16 @@ def create_security_group_id():
     )
     print(f'SecurityGroups created - {security_group["GroupId"]}')
     return security_group['GroupId']
-    
+
+
 def notify_new_instance(statuses):
     # Create an array with the original order
     array1 = [('ip', 'http://' + ip + ':5000') for ip in statuses.values()]
-    
+
     # Create a list of URLs with the opposite order
-    array2 = [('ip', 'http://' + ip + ':5000') for ip in reversed(statuses.values())]
-    
+    array2 = [('ip', 'http://' + ip + ':5000')
+              for ip in reversed(statuses.values())]
+
     def http_post(url, data):
         try:
             response = requests.post(url, data=data)
@@ -225,6 +252,7 @@ def notify_new_instance(statuses):
             return None
     print(http_post(array1[0][1] + '/ip', json.dumps(array1)))
     print(http_post(array2[0][1] + '/ip', json.dumps(array2)))
+
 
 def create_key_pair(KeyName):
     # Check if the key pair already exists
@@ -244,11 +272,12 @@ def create_key_pair(KeyName):
     # Save the private key to a file
     with open(f'{KeyName}.pem', 'w') as file:
         file.write(key_pair['KeyMaterial'])
-        
+
     os.chmod(f'{KeyName}.pem', 0o400)
-        
+
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
-    
+
+
 def ssh_and_run_code(statuses):
     # Connect to the instances via SSH
     ssh_clients = []
@@ -256,7 +285,7 @@ def ssh_and_run_code(statuses):
         print(f"Connecting to instance {instance_id} at {instance_ip}...")
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-       
+
         ssh.connect(
             hostname=instance_ip,
             username='ubuntu',
@@ -278,32 +307,36 @@ def ssh_and_run_code(statuses):
         print(f"Closing SSH connection to instance {instance_id}...")
         ssh.close()
 
+
 def main():
 
     # Create a new security group
     security_group_id = create_security_group_id()
-    
+
     # Create IAM role
     instance_profile_name = open_iam_role_to_ec2(config['EC2']['RoleName'])
-    
+
     # Create key pair
     create_key_pair(config['EC2']['KeyName'])
-    
+
     # Launch EC2 instances
     statuses = {}
-    public_ip, instance_id = create_ec2_instance(instance_profile_name, security_group_id, 'node1')
+    public_ip, instance_id = create_ec2_instance(
+        instance_profile_name, security_group_id, 'node1')
     statuses[instance_id] = public_ip
-    public_ip, instance_id = create_ec2_instance(instance_profile_name, security_group_id, 'node2')
+    public_ip, instance_id = create_ec2_instance(
+        instance_profile_name, security_group_id, 'node2')
     statuses[instance_id] = public_ip
-    
+
     time.sleep(10)
     ssh_and_run_code(statuses)
     time.sleep(5)
     notify_new_instance(statuses)
-    
+
     array1 = ['http://' + ip + ':5000' for ip in statuses.values()]
     for index, node in enumerate(array1):
         print(f'node {index} - {node}')
+
 
 if __name__ == '__main__':
     main()
