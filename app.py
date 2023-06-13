@@ -35,7 +35,7 @@ def create_key_pair(KeyName):
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
 
 now_str = datetime.datetime.now()
-KeyName = now_str.strftime("%Y-%m-%d%H:%M:%S.%f").strip()
+KeyName = now_str.strftime("%Y-%m-%d%H:%M:%S.%f").strip()[:-7]
  
 create_key_pair(KeyName)
 
