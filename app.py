@@ -152,7 +152,7 @@ def launch_ec2_instance():
     response = ec2_client.run_instances(
         ImageId=config['EC2']['ImageId'],
         InstanceType=config['EC2']['InstanceType'],
-        KeyName=keyName,
+        #KeyName=keyName,
         SecurityGroupIds=[config['EC2']['GroupName']],
         MinCount=1,
         MaxCount=1,
