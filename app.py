@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request
 import boto3
 import requests
@@ -144,10 +145,14 @@ def http_post(url, data):
 
 def launch_ec2_instance():
     global workers
+
+    keyName = str(datetime.datetime.now())
+    create_key_pair(keyName)
+
     response = ec2_client.run_instances(
         ImageId=config['EC2']['ImageId'],
         InstanceType=config['EC2']['InstanceType'],
-        KeyName=config['EC2']['KeyName'],
+        KeyName=keyName,
         SecurityGroupIds=[config['EC2']['GroupName']],
         MinCount=1,
         MaxCount=1,
@@ -179,9 +184,8 @@ def launch_ec2_instance():
         time.sleep(5)
     
     # TODO : add pem creation and download to file system
-      
     # add and run code on worker
-    ssh_and_run_code(workers[instance_id])
+    ssh_and_run_code(workers[instance_id], keyName)
         
     url = f'http://{workers[instance_id]}:443/instanceId'
     url2 = f'http://{workers[instance_id]}:443/newNode'
@@ -216,7 +220,7 @@ def get_completed_work(n):
         else:
             return []
         
-def ssh_and_run_code(instance_ip):
+def ssh_and_run_code(instance_ip, keyName):
     # Connect to the instances via SSH
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -224,7 +228,7 @@ def ssh_and_run_code(instance_ip):
     ssh.connect(
         hostname=instance_ip,
         username='ubuntu',
-        key_filename=config['EC2']['KeyName'] + '.pem'
+        key_filename=keyName + '.pem'
     )
 
     for command in config['CommandsWorker'].values():
@@ -234,6 +238,18 @@ def ssh_and_run_code(instance_ip):
 
     # Close SSH connections
     ssh.close()
+
+def create_key_pair(KeyName):
+    # Create a new key pair
+    key_pair = ec2_client.create_key_pair(KeyName=KeyName)
+
+    # Save the private key to a file
+    with open(f'{KeyName}.pem', 'w') as file:
+        file.write(key_pair['KeyMaterial'])
+        
+    os.chmod(f'{KeyName}.pem', 0o400)
+        
+    print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
 
 if __name__ == '__main__':
     # Create and start the server thread
