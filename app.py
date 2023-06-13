@@ -199,8 +199,8 @@ def launch_ec2_instance():
     # add and run code on worker
     ssh_and_run_code(workers[instance_id], keyName)
         
-    url = f'http://{workers[instance_id]}:443/instanceId'
-    url2 = f'http://{workers[instance_id]}:443/newNode'
+    url = f'http://{workers[instance_id]}:5000/instanceId'
+    url2 = f'http://{workers[instance_id]}:5000/newNode'
     http_post(url, instance_id)
     http_post(url2, nodes)
     print(f"Launched EC2 instance: {instance_id}")
