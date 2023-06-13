@@ -232,7 +232,7 @@ def get_completed_work(n):
         else:
             return []
         
-def ssh_and_run_code(instance_ip, keyName):
+def ssh_and_run_code(instance_ip, KeyName):
     # Connect to the instances via SSH
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -240,7 +240,7 @@ def ssh_and_run_code(instance_ip, keyName):
     ssh.connect(
         hostname=instance_ip,
         username='ubuntu',
-        key_filename=keyName + '.pem'
+        key_filename=KeyName + '.pem'
     )
 
     for command in config['CommandsWorker'].values():
