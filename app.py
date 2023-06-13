@@ -26,12 +26,12 @@ def create_key_pair(KeyName):
     key_pair = ec2_client.create_key_pair(KeyName=KeyName)
 
     # Save the private key to a file
-    with open(f'cloud-ex2/{KeyName}.pem', 'w') as file:
+    with open(f'{KeyName}.pem', 'w') as file:
         file.write(key_pair['KeyMaterial'])
         
-    os.chmod(f'cloud-ex2/{KeyName}.pem', 0o400)
+    os.chmod(f'{KeyName}.pem', 0o400)
         
-    print(f"Key pair '{KeyName}' created and saved to 'cloud-ex2/{KeyName}.pem'.")
+    print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
     
 KeyName = str(datetime.datetime.now())
 create_key_pair(KeyName)
