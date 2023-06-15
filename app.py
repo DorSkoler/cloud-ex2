@@ -9,7 +9,8 @@ import json
 import datetime
 import uuid
 import paramiko
-from paramiko import AuthenticationException, SSHException, NoValidConnectionsError
+from paramiko import AuthenticationException, SSHException
+from paramiko.ssh_exception import NoValidConnectionsError
 
 
 
