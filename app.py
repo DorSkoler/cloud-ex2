@@ -206,8 +206,10 @@ def launch_ec2_instance():
     url = f'http://{workers[instance_id]}:5000/instanceId'
     url2 = f'http://{workers[instance_id]}:5000/newNode'
     http_post(url, instance_id)
-    time.sleep(2) 
+    print(url)
+    time.sleep(2)
     http_post(url2, nodes)
+    print(url2)
     time.sleep(2) 
     print(f"Launched EC2 instance: {instance_id}")
 
