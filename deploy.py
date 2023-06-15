@@ -237,11 +237,10 @@ def create_security_group_id():
 
 def notify_new_instance(statuses):
     # Create an array with the original order
-    array1 = [('ip', 'http://' + ip + ':5000') for ip in statuses.values()]
+    array1 = ['http://' + ip + ':5000' for ip in statuses.values()]
 
     # Create a list of URLs with the opposite order
-    array2 = [('ip', 'http://' + ip + ':5000')
-              for ip in reversed(statuses.values())]
+    array2 = ['http://' + ip + ':5000' for ip in reversed(statuses.values())]
 
     def http_post(url, data):
         try:

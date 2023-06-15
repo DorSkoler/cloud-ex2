@@ -67,7 +67,7 @@ def check_workers():
         print("nodes worker:", nodes)
         # Perform the worker checking logic here
         print("Checking workers...")
-        time.sleep(10)  # Sleep for 10 seconds between each check
+        time.sleep(30)  # Sleep for 10 seconds between each check
         if len(queue) > 0:
             if datetime.datetime.now() - queue[-1][3] > datetime.timedelta(seconds=15):
                 if len(workers) < maxNumOfWorkers:
@@ -154,7 +154,7 @@ def http_get(url):
     
 def http_post(url, data):
     try:
-        response = requests.post(url, data=data)
+        response = requests.post(url, data=json.dumps(data))
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         return response.text
     except requests.exceptions.RequestException as e:
@@ -198,9 +198,9 @@ def launch_ec2_instance():
             break
         time.sleep(5)
     
-    # TODO : add pem creation and download to file system
-    # add and run code on worker
-    time.sleep(15)
+    waiter = ec2_client.get_waiter('instance_status_ok')
+    waiter.wait(InstanceIds=[instance_id])
+    
     ssh_and_run_code(workers[instance_id], KeyName)
     time.sleep(5)    
     url = f'http://{workers[instance_id]}:5000/instanceId'
