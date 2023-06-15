@@ -6,6 +6,7 @@ import yaml
 import json
 import requests
 import os
+from paramiko import AuthenticationException, SSHException, NoValidConnectionsError
 
 # Read configuration from file
 with open('config.yaml') as file:
@@ -298,6 +299,13 @@ def ssh_and_run_code(statuses):
                 break  # Successfully connected, break out of the loop
 
             
+            except AuthenticationException:
+                print("Authentication failed. Please check your credentials.")
+                break  # Authentication failed, break out of the loop
+            except SSHException as e:
+                print(f"SSH connection failed: {str(e)}")
+                print("Retrying in 5 seconds...")
+                time.sleep(5)  # Wait for 5 seconds before retrying
             except NoValidConnectionsError as e:
                 print(f"Unable to establish SSH connection: {str(e)}")
                 print("Retrying in 5 seconds...")
