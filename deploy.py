@@ -6,7 +6,8 @@ import yaml
 import json
 import requests
 import os
-from paramiko import AuthenticationException, SSHException, NoValidConnectionsError
+from paramiko import AuthenticationException, SSHException
+from paramiko.ssh_exception import NoValidConnectionsError
 
 # Read configuration from file
 with open('config.yaml') as file:
