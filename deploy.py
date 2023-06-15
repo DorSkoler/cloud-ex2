@@ -296,11 +296,15 @@ def ssh_and_run_code(statuses):
                 )
                 ssh_clients.append((instance_id, ssh))
                 break  # Successfully connected, break out of the loop
-            except paramiko.AuthenticationException:
+            except AuthenticationException:
                 print("Authentication failed. Please check your credentials.")
                 break  # Authentication failed, break out of the loop
-            except paramiko.SSHException as e:
+            except SSHException as e:
                 print(f"SSH connection failed: {str(e)}")
+                print("Retrying in 5 seconds...")
+                time.sleep(5)  # Wait for 5 seconds before retrying
+            except NoValidConnectionsError as e:
+                print(f"Unable to establish SSH connection: {str(e)}")
                 print("Retrying in 5 seconds...")
                 time.sleep(5)  # Wait for 5 seconds before retrying
 
