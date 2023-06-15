@@ -198,9 +198,6 @@ def launch_ec2_instance():
             break
         time.sleep(5)
     
-    waiter = ec2_client.get_waiter('instance_status_ok')
-    waiter.wait(InstanceIds=[instance_id])
-    
     ssh_and_run_code(workers[instance_id], KeyName)
     time.sleep(5)    
     url = f'http://{workers[instance_id]}:5000/instanceId'
@@ -237,24 +234,38 @@ def get_completed_work(n):
             return []
         
 def ssh_and_run_code(instance_ip, KeyName):
-    # Connect to the instances via SSH
-    print('Connected to Worker using SSH')
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    
-    ssh.connect(
-        hostname=instance_ip,
-        username='ubuntu',
-        key_filename=KeyName + '.pem'
-    )
-        
-    for command in config['CommandsWorker']:
-            print(f"Executing command: {command}")
-            stdin, stdout, stderr = ssh.exec_command(command)
-            print(stdout.read().decode())
-            print(stderr.read().decode())
+    connected = False
 
-    # Close SSH connections
+    while not connected:
+        try:
+            # Connect to the instance via SSH
+            print('Connecting to Worker using SSH...')
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+            ssh.connect(
+                hostname=instance_ip,
+                username='ubuntu',
+                key_filename=KeyName + '.pem'
+            )
+
+            connected = True  # SSH connection successful
+            print('Connected to Worker using SSH')
+
+            for command in config['CommandsWorker']:
+                print(f"Executing command: {command}")
+                stdin, stdout, stderr = ssh.exec_command(command)
+                print(stdout.read().decode())
+                print(stderr.read().decode())
+
+        except paramiko.AuthenticationException:
+            print("Authentication failed. Please check your credentials.")
+        except paramiko.SSHException as e:
+            print(f"SSH connection failed: {str(e)}")
+            print("Retrying in 5 seconds...")
+            time.sleep(5)  # Wait for 5 seconds before retrying
+
+    # Close SSH connection
     print('Closing SSH to Worker')
     ssh.close()
 

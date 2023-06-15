@@ -174,7 +174,7 @@ def create_ec2_instance(iam_role, security_group_id, instance_name):
         },
         InstanceId=instance_id
     )
-
+    
     return public_ip, instance_id
 
 
@@ -250,8 +250,8 @@ def notify_new_instance(statuses):
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             return None
-    print(http_post(array1[0][1] + '/ip', json.dumps(array1)))
-    print(http_post(array2[0][1] + '/ip', json.dumps(array2)))
+    print(http_post(array1[0] + '/ip', json.dumps(array1)))
+    print(http_post(array2[0] + '/ip', json.dumps(array2)))
 
 
 def create_key_pair(KeyName):
@@ -278,20 +278,31 @@ def create_key_pair(KeyName):
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
 
 
+
 def ssh_and_run_code(statuses):
     # Connect to the instances via SSH
     ssh_clients = []
     for instance_id, instance_ip in statuses.items():
         print(f"Connecting to instance {instance_id} at {instance_ip}...")
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        while True:
+            try:
+                ssh = paramiko.SSHClient()
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        ssh.connect(
-            hostname=instance_ip,
-            username='ubuntu',
-            key_filename=config['EC2']['KeyName'] + '.pem'
-        )
-        ssh_clients.append((instance_id, ssh))
+                ssh.connect(
+                    hostname=instance_ip,
+                    username='ubuntu',
+                    key_filename=config['EC2']['KeyName'] + '.pem'
+                )
+                ssh_clients.append((instance_id, ssh))
+                break  # Successfully connected, break out of the loop
+            except paramiko.AuthenticationException:
+                print("Authentication failed. Please check your credentials.")
+                break  # Authentication failed, break out of the loop
+            except paramiko.SSHException as e:
+                print(f"SSH connection failed: {str(e)}")
+                print("Retrying in 5 seconds...")
+                time.sleep(5)  # Wait for 5 seconds before retrying
 
     # Execute commands on instances using SSH
     for instance_id, ssh in ssh_clients:
@@ -327,8 +338,7 @@ def main():
     public_ip, instance_id = create_ec2_instance(
         instance_profile_name, security_group_id, 'node2')
     statuses[instance_id] = public_ip
-
-    time.sleep(10)
+    
     ssh_and_run_code(statuses)
     time.sleep(5)
     notify_new_instance(statuses)
