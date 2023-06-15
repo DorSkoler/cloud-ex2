@@ -296,9 +296,6 @@ def ssh_and_run_code(statuses):
                 )
                 ssh_clients.append((instance_id, ssh))
                 break  # Successfully connected, break out of the loop
-            except AuthenticationException:
-                print("Authentication failed. Please check your credentials.")
-                break  # Authentication failed, break out of the loop
             except SSHException as e:
                 print(f"SSH connection failed: {str(e)}")
                 print("Retrying in 5 seconds...")
