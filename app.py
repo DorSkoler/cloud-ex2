@@ -248,7 +248,7 @@ def ssh_and_run_code(instance_ip, KeyName):
         key_filename=KeyName + '.pem'
     )
         
-    for command in config['Commands']:
+    for command in config['CommandsWorker']:
             print(f"Executing command: {command}")
             stdin, stdout, stderr = ssh.exec_command(command)
             print(stdout.read().decode())
