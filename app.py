@@ -200,7 +200,7 @@ def launch_ec2_instance():
     
     # TODO : add pem creation and download to file system
     # add and run code on worker
-    time.sleep(10)
+    time.sleep(15)
     ssh_and_run_code(workers[instance_id], KeyName)
     time.sleep(5)    
     url = f'http://{workers[instance_id]}:5000/instanceId'
