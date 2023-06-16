@@ -130,8 +130,7 @@ def giveWork():
         with lockQueue:
             return queue.pop()
     else:
-        response = jsonify('No job')
-        response.status_code = 404
+        response = jsonify('')
         return response
 
 @app.route('/completeWork', methods=['POST'])
@@ -145,71 +144,87 @@ def completeWork():
 '''
 handler functions
 '''
-def http_get(url):
+def http_post(url, data):
     try:
-        response = requests.get(url)
+        print(f"Sending POST request to: {url}")
+        print(f"Request data: {data}")
+        
+        response = requests.post(url, data=data)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
-        return json.loads(response.text)
+        
+        print(f"Response status code: {response.status_code}")
+        print(f"Response data: {response.text}")
+        
+        return response.text
+    
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
 
-def http_post(url, data):
+def http_get(url):
     try:
-        response = requests.post(url, data=json.dumps(data))
+        print(f"Sending GET request to: {url}")
+
+        response = requests.get(url)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
-        return response.text
+        
+        print(f"Response status code: {response.status_code}")
+        print(f"Response data: {response.text}")
+        
+        return json.loads(response.text)
+    
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
 
 def launch_ec2_instance():
+    print('open worker plz')
     global workers
 
-    response = ec2_client.run_instances(
-        ImageId=config['EC2']['ImageId'],
-        InstanceType=config['EC2']['InstanceType'],
-        KeyName=KeyName,
-        SecurityGroupIds=[config['EC2']['GroupName']],
-        MinCount=1,
-        MaxCount=1,
-        InstanceInitiatedShutdownBehavior='terminate',
-        TagSpecifications=[
-            {
-                'ResourceType': 'instance',
-                'Tags': [
-                    {
-                        'Key': 'Name',
-                        'Value': f'worker-{datetime.datetime.now()}-of-{nodes[0]}'
-                    },
-                ]
-            },
-        ]
-    )
-    instance_id = response['Instances'][0]['InstanceId']
+    # response = ec2_client.run_instances(
+    #     ImageId=config['EC2']['ImageId'],
+    #     InstanceType=config['EC2']['InstanceType'],
+    #     KeyName=KeyName,
+    #     SecurityGroupIds=[config['EC2']['GroupName']],
+    #     MinCount=1,
+    #     MaxCount=1,
+    #     InstanceInitiatedShutdownBehavior='terminate',
+    #     TagSpecifications=[
+    #         {
+    #             'ResourceType': 'instance',
+    #             'Tags': [
+    #                 {
+    #                     'Key': 'Name',
+    #                     'Value': f'worker-{datetime.datetime.now()}-of-{nodes[0]}'
+    #                 },
+    #             ]
+    #         },
+    #     ]
+    # )
+    # instance_id = response['Instances'][0]['InstanceId']
 
-    waiter = ec2_client.get_waiter('instance_running')
-    waiter.wait(InstanceIds=[instance_id])
-    # Wait for the instance to have an IP address
-    while True:
-        response = ec2_client.describe_instances(InstanceIds=[instance_id])
-        instance = response['Reservations'][0]['Instances'][0]
-        if 'PublicIpAddress' in instance:
-            with lockWorkers:
-                workers[instance_id] = instance['PublicIpAddress']
-            break
-        time.sleep(5)
+    # waiter = ec2_client.get_waiter('instance_running')
+    # waiter.wait(InstanceIds=[instance_id])
+    # # Wait for the instance to have an IP address
+    # while True:
+    #     response = ec2_client.describe_instances(InstanceIds=[instance_id])
+    #     instance = response['Reservations'][0]['Instances'][0]
+    #     if 'PublicIpAddress' in instance:
+    #         with lockWorkers:
+    #             workers[instance_id] = instance['PublicIpAddress']
+    #         break
+    #     time.sleep(5)
 
-    ssh_and_run_code(workers[instance_id], KeyName)
-    time.sleep(5)
-    url = f'http://{workers[instance_id]}:5000/instanceId'
-    url2 = f'http://{workers[instance_id]}:5000/newNode'
+    # ssh_and_run_code(workers[instance_id], KeyName)
+    # time.sleep(5)
+    # url = f'http://{workers[instance_id]}:5000/instanceId'
+    # url2 = f'http://{workers[instance_id]}:5000/newNode'
     
-    http_post(url, instance_id)
-    print("Ran" + url)
-    http_post(url2, nodes)
-    print("Ran" + url2)
-    print(f"Launched EC2 instance: {instance_id}")
+    # http_post(url, instance_id)
+    # print("Ran" + url)
+    # http_post(url2, nodes)
+    # print("Ran" + url2)
+    # print(f"Launched EC2 instance: {instance_id}")
 
 def get_completed_work(n):
     global completed_work
@@ -261,8 +276,19 @@ def ssh_and_run_code(instance_ip, KeyName):
             for command in config['CommandsWorker']:
                 print(f"Executing command: {command}")
                 stdin, stdout, stderr = ssh.exec_command(command)
-                print(stdout.read().decode())
-                print(stderr.read().decode())
+                
+                # Print the progress of the job
+                while not stdout.channel.exit_status_ready():
+                    output = stdout.readline().strip()
+                    if output:
+                        print(f"Progress: {output}")
+                
+                print("Job execution completed.")
+
+                # Print any error output
+                error_output = stderr.read().decode()
+                if error_output:
+                    print(f"Error output:\n{error_output}")
 
         except AuthenticationException:
             print("Authentication failed. Please check your credentials.")
@@ -279,6 +305,7 @@ def ssh_and_run_code(instance_ip, KeyName):
     # Close SSH connection
     print('Closing SSH to Worker')
     ssh.close()
+
 
 if __name__ == '__main__':
     # Create and start the server thread

@@ -51,18 +51,33 @@ def process_work(data):
 
 def http_post(url, data):
     try:
+        print(f"Sending POST request to: {url}")
+        print(f"Request data: {data}")
+        
         response = requests.post(url, data=data)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
+        
+        print(f"Response status code: {response.status_code}")
+        print(f"Response data: {response.text}")
+        
         return response.text
+    
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
-    
+
 def http_get(url):
     try:
+        print(f"Sending GET request to: {url}")
+
         response = requests.get(url)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
+        
+        print(f"Response status code: {response.status_code}")
+        print(f"Response data: {response.text}")
+        
         return json.loads(response.text)
+    
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
