@@ -9,6 +9,9 @@ import json
 import datetime
 import uuid
 import paramiko
+from paramiko import AuthenticationException, SSHException
+from paramiko.ssh_exception import NoValidConnectionsError
+
 
 '''
 init
@@ -203,7 +206,11 @@ def launch_ec2_instance():
     url = f'http://{workers[instance_id]}:5000/instanceId'
     url2 = f'http://{workers[instance_id]}:5000/newNode'
     http_post(url, instance_id)
+    print("Ran" + url)
+    time.sleep(2)
     http_post(url2, nodes)
+    print("Ran" + url2)
+    time.sleep(2) 
     print(f"Launched EC2 instance: {instance_id}")
 
 def get_completed_work(n):
@@ -259,10 +266,15 @@ def ssh_and_run_code(instance_ip, KeyName):
                 print(stdout.read().decode())
                 print(stderr.read().decode())
 
-        except paramiko.AuthenticationException:
+        except AuthenticationException:
             print("Authentication failed. Please check your credentials.")
-        except paramiko.SSHException as e:
+            break  # Authentication failed, break out of the loop
+        except SSHException as e:
             print(f"SSH connection failed: {str(e)}")
+            print("Retrying in 5 seconds...")
+            time.sleep(5)  # Wait for 5 seconds before retrying
+        except NoValidConnectionsError as e:
+            print(f"Unable to establish SSH connection: {str(e)}")
             print("Retrying in 5 seconds...")
             time.sleep(5)  # Wait for 5 seconds before retrying
 
