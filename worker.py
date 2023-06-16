@@ -6,6 +6,7 @@ import time
 import json
 import os
 import threading
+import logging
 
 app = Flask(__name__)
 
@@ -16,12 +17,27 @@ lockNodes = threading.Lock()
 lockWork = threading.Lock()
 lockInstanceId = threading.Lock()
 
+# Configure the logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a file handler and set the log level
+file_handler = logging.FileHandler('worker.log')
+file_handler.setLevel(logging.INFO)
+
+# Create a formatter and add it to the file handler
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
+
 @app.route('/instanceId', methods=['POST'])
 def getInstanceId():
     global instanceId
     with lockInstanceId:
         instanceId = json.loads(request.data)
-    print("Received instanceId:", instanceId)
+    logger.info("Received instanceId: %s", instanceId)
     return 'Added instanceId'
 
 @app.route('/newNode', methods=['POST'])
@@ -29,17 +45,17 @@ def getNewNode():
     global nodes
     with lockNodes:
         nodes = json.loads(request.data)
-    print("Received new nodes:", nodes)
-    print("Instance ID:", instanceId)
+    logger.info("Received new nodes: %s", nodes)
+    logger.info("Instance ID: %s", instanceId)
     return 'Added newNode'
 
 def process_work(data):
     # Get the next work item from the queue
     buffer = data['buffer']
     iterations = int(data['iterations'])
-    print("Processing work item:")
-    print("Buffer:", buffer)
-    print("Iterations:", iterations)
+    logger.info("Processing work item:")
+    logger.info("Buffer: %s", buffer)
+    logger.info("Iterations: %d", iterations)
     # Perform the computation
     encoded_buffer = buffer.encode('utf-8')
     output = hashlib.sha512(encoded_buffer).digest()
@@ -51,35 +67,35 @@ def process_work(data):
 
 def http_post(url, data):
     try:
-        print(f"Sending POST request to: {url}")
-        print(f"Request data: {data}")
+        logger.info("Sending POST request to: %s", url)
+        logger.info("Request data: %s", data)
         
         response = requests.post(url, data=json.dumps(data))
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         
-        print(f"Response status code: {response.status_code}")
-        print(f"Response data: {response.text}")
+        logger.info("Response status code: %d", response.status_code)
+        logger.info("Response data: %s", response.text)
         
         return response.text
     
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        logger.error("An error occurred: %s", e)
         return None
 
 def http_get(url):
     try:
-        print(f"Sending GET request to: {url}")
+        logger.info("Sending GET request to: %s", url)
 
         response = requests.get(url)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         
-        print(f"Response status code: {response.status_code}")
-        print(f"Response data: {response.text}")
+        logger.info("Response status code: %d", response.status_code)
+        logger.info("Response data: %s", response.text)
         
         return json.loads(response.text)
     
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        logger.error("An error occurred: %s", e)
         return None
 
 def killMe():
@@ -89,31 +105,5 @@ def killMe():
 def loop():
     if len(nodes) > 0 and instanceId != '':
         lastTime = datetime.datetime.now()
-        print("Loop started. Last time:", lastTime)
-        while datetime.datetime.now() - lastTime <= datetime.timedelta(minutes=10):
-            for node in nodes:
-                work = http_get(f'{node}/getWork')
-                
-                if work != '':
-                    print("Received work:", work)
-                    result = process_work(work)
-                    http_post(f'{node}/completeWork', [result, work['work_id']])
-                    lastTime = datetime.datetime.now()
-                    continue
-
-            time.sleep(10)
-        killMe()
-    else:
-        time.sleep(10)
-
- 
-def run_server():   
-    app.run(host='0.0.0.0')
-
-if __name__ == '__main__':
-    # Create and start the server thread
-    server_thread = threading.Thread(target=run_server)
-    server_thread.start()
-
-    server_thread = threading.Thread(target=loop)
-    server_thread.start()
+        logger.info("Loop started. Last time: %s", lastTime)
+        while datetime.datetime.now() - lastTime <=
