@@ -149,7 +149,7 @@ def http_post(url, data):
         print(f"Sending POST request to: {url}")
         print(f"Request data: {data}")
         
-        response = requests.post(url, data=data)
+        response = requests.post(url, data=json.dumps(data))
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         
         print(f"Response status code: {response.status_code}")
@@ -275,19 +275,7 @@ def ssh_and_run_code(instance_ip, KeyName):
             for command in config['CommandsWorker']:
                 print(f"Executing command: {command}")
                 stdin, stdout, stderr = ssh.exec_command(command)
-                
-                # Print the progress of the job
-                while not stdout.channel.exit_status_ready():
-                    output = stdout.readline().strip()
-                    if output:
-                        print(f"Progress: {output}")
-                
-                print("Job execution completed.")
-
-                # Print any error output
-                error_output = stderr.read().decode()
-                if error_output:
-                    print(f"Error output:\n{error_output}")
+                print(stderr.read().decode())
 
         except AuthenticationException:
             print("Authentication failed. Please check your credentials.")
