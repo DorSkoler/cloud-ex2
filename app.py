@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask, jsonify, request
 import boto3
 import requests
@@ -12,7 +13,6 @@ import paramiko
 from paramiko import AuthenticationException, SSHException
 from paramiko.ssh_exception import NoValidConnectionsError
 
-
 '''
 init
 '''
@@ -22,6 +22,20 @@ with open('cloud-ex2/config.yaml') as file:
 
 ec2_client = boto3.client('ec2', region_name=config['EC2']['region'])
 app = Flask(__name__)
+
+# Configure logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a file handler and set the log level
+file_handler = logging.FileHandler('app.log')
+
+# Create a formatter and add it to the file handler
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
 
 def create_key_pair(KeyName):
     # Create a new key pair
@@ -34,7 +48,7 @@ def create_key_pair(KeyName):
     os.system(f'sudo chmod 400 {KeyName}.pem')
     os.system(f'sudo chown ubuntu {KeyName}.pem')
 
-    print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
+    logger.info(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
 
 now_str = datetime.datetime.now()
 KeyName = now_str.strftime("%Y-%m-%d-%H-%M-%S.%f").strip()[:-7]
@@ -67,7 +81,7 @@ def check_workers():
     global maxNumOfWorkers
     while True:
         # Perform the worker checking logic here
-        print("Checking workers...")
+        logger.info("Checking workers...")
         time.sleep(30)  # Sleep for 30 seconds between each check
         if len(queue) > 0:
             if datetime.datetime.now() - queue[-1][3] > datetime.timedelta(seconds=15):
@@ -80,7 +94,7 @@ def check_workers():
                             with lockNum:
                                 maxNumOfWorkers += 1
                     except requests.exceptions.RequestException as e:
-                        print(f"An error occurred during HTTP request: {e}")
+                        logger.error(f"An error occurred during HTTP request: {e}")
 
 
 '''
@@ -92,7 +106,7 @@ def enqueue_work():
     iterations = int(request.args.get('iterations', 1))
     work_id = str(uuid.uuid4())
     work = (buffer, iterations, work_id, datetime.datetime.now())
-    print(f'Work: {work}')
+    logger.info(f'Work: {work}')
     # Add the work item to the queue
     global queue
     with lockQueue:
@@ -111,7 +125,7 @@ def getIp():
     global nodes
     with lockNodes:
         nodes = json.loads(request.data)
-    print("Nodes server:", nodes)
+    logger.info("Nodes server:", nodes)
     return jsonify('Added nodes')
 
 @app.route('/getQueueLen', methods=['GET'])
@@ -148,35 +162,35 @@ handler functions
 '''
 def http_post(url, data):
     try:
-        print(f"Sending POST request to: {url}")
-        print(f"Request data: {data}")
+        logger.info(f"Sending POST request to: {url}")
+        logger.info(f"Request data: {data}")
         
         response = requests.post(url, data=json.dumps(data))
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         
-        print(f"Response status code: {response.status_code}")
-        print(f"Response data: {response.text}")
+        logger.info(f"Response status code: {response.status_code}")
+        logger.info(f"Response data: {response.text}")
         
         return response.text
     
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
         return None
 
 def http_get(url):
     try:
-        print(f"Sending GET request to: {url}")
+        logger.info(f"Sending GET request to: {url}")
 
         response = requests.get(url)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         
-        print(f"Response status code: {response.status_code}")
-        print(f"Response data: {response.text}")
+        logger.info(f"Response status code: {response.status_code}")
+        logger.info(f"Response data: {response.text}")
         
         return json.loads(response.text)
     
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
         return None
 
 def launch_ec2_instance():
@@ -222,10 +236,10 @@ def launch_ec2_instance():
     url2 = f'http://{workers[instance_id]}:5000/newNode'
     
     http_post(url, instance_id)
-    print("Ran" + url)
+    logger.info("Ran" + url)
     http_post(url2, nodes)
-    print("Ran" + url2)
-    print(f"Launched EC2 instance: {instance_id}")
+    logger.info("Ran" + url2)
+    logger.info(f"Launched EC2 instance: {instance_id}")
 
 def get_completed_work(n):
     global completed_work
@@ -261,7 +275,7 @@ def ssh_and_run_code(instance_ip, KeyName):
     while not connected:
         try:
             # Connect to the instance via SSH
-            print('Connecting to Worker using SSH...')
+            logger.info('Connecting to Worker using SSH...')
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -272,27 +286,27 @@ def ssh_and_run_code(instance_ip, KeyName):
             )
 
             connected = True  # SSH connection successful
-            print('Connected to Worker using SSH')
+            logger.info('Connected to Worker using SSH')
 
             for command in config['CommandsWorker']:
-                print(f"Executing command: {command}")
+                logger.info(f"Executing command: {command}")
                 stdin, stdout, stderr = ssh.exec_command(command)
-                print(stderr.read().decode())
+                logger.info(stderr.read().decode())
 
         except AuthenticationException:
-            print("Authentication failed. Please check your credentials.")
+            logger.error("Authentication failed. Please check your credentials.")
             break  # Authentication failed, break out of the loop
         except SSHException as e:
-            print(f"SSH connection failed: {str(e)}")
-            print("Retrying in 5 seconds...")
+            logger.error(f"SSH connection failed: {str(e)}")
+            logger.info("Retrying in 5 seconds...")
             time.sleep(5)  # Wait for 5 seconds before retrying
         except NoValidConnectionsError as e:
-            print(f"Unable to establish SSH connection: {str(e)}")
-            print("Retrying in 5 seconds...")
+            logger.error(f"Unable to establish SSH connection: {str(e)}")
+            logger.info("Retrying in 5 seconds...")
             time.sleep(5)  # Wait for 5 seconds before retrying
 
     # Close SSH connection
-    print('Closing SSH to Worker')
+    logger.info('Closing SSH to Worker')
     ssh.close()
 
 

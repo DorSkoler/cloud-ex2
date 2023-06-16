@@ -23,7 +23,6 @@ logger.setLevel(logging.INFO)
 
 # Create a file handler and set the log level
 file_handler = logging.FileHandler('worker.log')
-file_handler.setLevel(logging.INFO)
 
 # Create a formatter and add it to the file handler
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -104,6 +103,34 @@ def killMe():
 
 def loop():
     if len(nodes) > 0 and instanceId != '':
-        lastTime = datetime.datetime.now()
-        logger.info("Loop started. Last time: %s", lastTime)
-        while datetime.datetime.now() - lastTime <=
+        last_time = datetime.now()
+        logging.info("Loop started. Last time: %s", last_time)
+        while datetime.now() - last_time <= datetime.timedelta(minutes=10):
+            for node in nodes:
+                work = http_get(f'{node}/getWork')
+
+                if work != '':
+                    logging.info("Received work: %s", work)
+                    result = process_work(work)
+                    http_post(f'{node}/completeWork', [result, work['work_id']])
+                    last_time = datetime.now
+                    logging.info("Completed work item: %s", work['work_id'])
+                    last_time = datetime.now()
+                    continue
+
+            time.sleep(10)
+        killMe()
+    else:
+        time.sleep(10)
+
+
+def run_server():
+    app.run(host='0.0.0.0')
+
+if __name__ == '__main__':
+    # Create and start the server thread
+    server_thread = threading.Thread(target=run_server)
+    server_thread.start()
+
+    worker_thread = threading.Thread(target=loop)
+    worker_thread.start()

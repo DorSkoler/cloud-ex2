@@ -320,8 +320,8 @@ def ssh_and_run_code(statuses):
             stdin, stdout, stderr = ssh.exec_command(command)
             
             # Print the progress as a percentage
-            while not stdout.channel.exit_status_ready():
-                output = stdout.readline().strip()
+            while not stdin.channel.exit_status_ready():
+                output = stdin.readline().strip()
                 if output:
                     executed_commands += 1
                     progress = executed_commands / total_commands * 100
