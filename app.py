@@ -127,8 +127,10 @@ def TryGetNodeQuota():
 def giveWork():
     global queue
     if len(queue) > 0:
+        response = ''
         with lockQueue:
-            return queue.pop()
+            response = queue.pop()
+        return (response, 200)
     else:
         response = jsonify('')
         return response
