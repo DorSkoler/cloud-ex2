@@ -5,6 +5,7 @@ import datetime
 import time
 import json
 import os
+import threading
 
 app = Flask(__name__)
 
@@ -16,8 +17,6 @@ def getInstanceId():
     global instanceId
     instanceId = json.loads(request.data)
     print("Received instanceId:", instanceId)
-    if len(nodes) > 0 and instanceId != '':
-        return loop()
     return 'Added instanceId'
 
 @app.route('/newNode', methods=['POST'])
@@ -25,8 +24,6 @@ def getNewNode():
     nodes = json.loads(request.data)
     print("Received new nodes:", nodes)
     print("Instance ID:", instanceId)
-    if len(nodes) > 0 and instanceId != '':
-        return loop()
     return 'Added newNode'
 
 def process_work(data):
@@ -68,21 +65,33 @@ def killMe():
     return "Killing the worker: " + str(instanceId)
 
 def loop():
-    lastTime = datetime.datetime.now()
-    print("Loop started. Last time:", lastTime)
-    while datetime.datetime.now() - lastTime <= datetime.timedelta(minutes=10):
-        for node in nodes:
-            work = http_get(f'{node}/getWork')
+    if len(nodes) > 0 and instanceId != '':
+        lastTime = datetime.datetime.now()
+        print("Loop started. Last time:", lastTime)
+        while datetime.datetime.now() - lastTime <= datetime.timedelta(minutes=10):
+            for node in nodes:
+                work = http_get(f'{node}/getWork')
 
-            if work != '':
-                print("Received work:", work)
-                result = process_work(work)
-                http_post(f'{node}/completeWork', [result, work['work_id']])
-                lastTime = datetime.datetime.now()
-                continue
+                if work != '':
+                    print("Received work:", work)
+                    result = process_work(work)
+                    http_post(f'{node}/completeWork', [result, work['work_id']])
+                    lastTime = datetime.datetime.now()
+                    continue
 
+            time.sleep(10)
+        killMe()
+    else:
         time.sleep(10)
 
-    killMe()
-    
-app.run(host='0.0.0.0', port=5000)
+ 
+def run_server():   
+    app.run(host='0.0.0.0')
+
+if __name__ == '__main__':
+    # Create and start the server thread
+    server_thread = threading.Thread(target=run_server)
+    server_thread.start()
+
+    server_thread = threading.Thread(target=loop)
+    server_thread.start()
