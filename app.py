@@ -17,7 +17,7 @@ from paramiko.ssh_exception import NoValidConnectionsError
 init
 '''
 # Read configuration from file
-with open('cloud-ex2/config.yaml') as file:
+with open('config.yaml') as file:
     config = yaml.safe_load(file)
 
 ec2_client = boto3.client('ec2', region_name=config['EC2']['region'])
@@ -37,7 +37,7 @@ def create_key_pair(KeyName):
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
 
 now_str = datetime.datetime.now()
-KeyName = now_str.strftime("%Y-%m-%d%H:%M:%S.%f").strip()[:-7]
+KeyName = now_str.strftime("%Y-%m-%d-%H-%M-%S.%f").strip()[:-7]
 
 create_key_pair(KeyName)
 
@@ -66,7 +66,6 @@ def run_server():
 def check_workers():
     global maxNumOfWorkers
     while True:
-        print("Nodes worker:", nodes)
         # Perform the worker checking logic here
         print("Checking workers...")
         time.sleep(30)  # Sleep for 30 seconds between each check
@@ -205,12 +204,11 @@ def launch_ec2_instance():
     time.sleep(5)
     url = f'http://{workers[instance_id]}:5000/instanceId'
     url2 = f'http://{workers[instance_id]}:5000/newNode'
+    
     http_post(url, instance_id)
     print("Ran" + url)
-    time.sleep(2)
     http_post(url2, nodes)
     print("Ran" + url2)
-    time.sleep(2) 
     print(f"Launched EC2 instance: {instance_id}")
 
 def get_completed_work(n):

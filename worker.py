@@ -12,16 +12,23 @@ app = Flask(__name__)
 nodes = []
 instanceId = ''
 
+lockNodes = threading.Lock()
+lockWork = threading.Lock()
+lockInstanceId = threading.Lock()
+
 @app.route('/instanceId', methods=['POST'])
 def getInstanceId():
     global instanceId
-    instanceId = json.loads(request.data)
+    with lockInstanceId:
+        instanceId = json.loads(request.data)
     print("Received instanceId:", instanceId)
     return 'Added instanceId'
 
 @app.route('/newNode', methods=['POST'])
 def getNewNode():
-    nodes = json.loads(request.data)
+    global nodes
+    with lockNodes:
+        nodes = json.loads(request.data)
     print("Received new nodes:", nodes)
     print("Instance ID:", instanceId)
     return 'Added newNode'
@@ -71,7 +78,7 @@ def loop():
         while datetime.datetime.now() - lastTime <= datetime.timedelta(minutes=10):
             for node in nodes:
                 work = http_get(f'{node}/getWork')
-
+                
                 if work != '':
                     print("Received work:", work)
                     result = process_work(work)
