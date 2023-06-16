@@ -15,24 +15,27 @@ instanceId = ''
 def getInstanceId():
     global instanceId
     instanceId = json.loads(request.data)
-    print(nodes, instanceId)
+    print("Received instanceId:", instanceId)
     if len(nodes) > 0 and instanceId != '':
         return loop()
-    return 'added instanceId'
+    return 'Added instanceId'
 
 @app.route('/newNode', methods=['POST'])
 def getNewNode():
     nodes = json.loads(request.data)
-    print(nodes, instanceId)
+    print("Received new nodes:", nodes)
+    print("Instance ID:", instanceId)
     if len(nodes) > 0 and instanceId != '':
         return loop()
-    return 'added newNode'
+    return 'Added newNode'
 
 def process_work(data):
     # Get the next work item from the queue
     buffer = data['buffer']
     iterations = int(data['iterations'])
-    print(buffer, iterations)
+    print("Processing work item:")
+    print("Buffer:", buffer)
+    print("Iterations:", iterations)
     # Perform the computation
     encoded_buffer = buffer.encode('utf-8')
     output = hashlib.sha512(encoded_buffer).digest()
@@ -62,18 +65,19 @@ def http_get(url):
 
 def killMe():
     os.system('sudo shutdown -h now')
-    return "killing the worker" + str(instanceId)
+    return "Killing the worker: " + str(instanceId)
 
 def loop():
     lastTime = datetime.datetime.now()
-    print(lastTime)
+    print("Loop started. Last time:", lastTime)
     while datetime.datetime.now() - lastTime <= datetime.timedelta(minutes=10):
         for node in nodes:
             work = http_get(f'{node}/getWork')
 
             if work != '':
+                print("Received work:", work)
                 result = process_work(work)
-                http_post(f'{node}/completeWork', [ result, work['work_id'] ])
+                http_post(f'{node}/completeWork', [result, work['work_id']])
                 lastTime = datetime.datetime.now()
                 continue
 

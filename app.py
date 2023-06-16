@@ -10,7 +10,6 @@ import datetime
 import uuid
 import paramiko
 
-
 '''
 init
 '''
@@ -28,15 +27,15 @@ def create_key_pair(KeyName):
     # Save the private key to a file
     with open(f'{KeyName}.pem', 'w') as file:
         file.write(key_pair['KeyMaterial'])
-        
+
     os.system(f'sudo chmod 400 {KeyName}.pem')
     os.system(f'sudo chown ubuntu {KeyName}.pem')
-        
+
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
 
 now_str = datetime.datetime.now()
 KeyName = now_str.strftime("%Y-%m-%d%H:%M:%S.%f").strip()[:-7]
- 
+
 create_key_pair(KeyName)
 
 # In-memory queue to store the submitted work items
@@ -64,10 +63,10 @@ def run_server():
 def check_workers():
     global maxNumOfWorkers
     while True:
-        print("nodes worker:", nodes)
+        print("Nodes worker:", nodes)
         # Perform the worker checking logic here
         print("Checking workers...")
-        time.sleep(30)  # Sleep for 10 seconds between each check
+        time.sleep(30)  # Sleep for 30 seconds between each check
         if len(queue) > 0:
             if datetime.datetime.now() - queue[-1][3] > datetime.timedelta(seconds=15):
                 if len(workers) < maxNumOfWorkers:
@@ -77,10 +76,11 @@ def check_workers():
                         response = http_get(nodes[1] + '/getQueueLen')
                         if response:
                             with lockNum:
-                                maxNumOfWorkers =+ 1
+                                maxNumOfWorkers += 1
                     except requests.exceptions.RequestException as e:
                         print(f"An error occurred during HTTP request: {e}")
-                        
+
+
 '''
 routes
 '''
@@ -90,7 +90,7 @@ def enqueue_work():
     iterations = int(request.args.get('iterations', 1))
     work_id = str(uuid.uuid4())
     work = (buffer, iterations, work_id, datetime.datetime.now())
-    print(f'work: {work}')
+    print(f'Work: {work}')
     # Add the work item to the queue
     global queue
     with lockQueue:
@@ -101,7 +101,7 @@ def enqueue_work():
 @app.route('/pullCompleted', methods=['POST'])
 def pull_completed_work():
     top = int(request.args.get('top', 1))
-    work_items = get_completed_work(top);
+    work_items = get_completed_work(top)
     return jsonify({'work_items': work_items})
 
 @app.route('/ip', methods=['POST'])
@@ -109,15 +109,15 @@ def getIp():
     global nodes
     with lockNodes:
         nodes = json.loads(request.data)
-    print("nodes server:", nodes)
-    return jsonify('added nodes')
+    print("Nodes server:", nodes)
+    return jsonify('Added nodes')
 
 @app.route('/getQueueLen', methods=['GET'])
 def TryGetNodeQuota():
     global maxNumOfWorkers
     if len(workers) < maxNumOfWorkers:
         with lockNum:
-            maxNumOfWorkers =- 1
+            maxNumOfWorkers -= 1
         return True
     return False
 
@@ -128,17 +128,17 @@ def giveWork():
         with lockQueue:
             return queue.pop()
     else:
-        response = jsonify('no job')
+        response = jsonify('No job')
         response.status_code = 404
         return response
-    
+
 @app.route('/completeWork', methods=['POST'])
 def completeWork():
     data = json.loads(request.data)
     global completed_work
     with lockComplete:
         completed_work[data[1]] = data[0]
-
+    return jsonify('Work completed')
 
 '''
 handler functions
@@ -151,7 +151,7 @@ def http_get(url):
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
-    
+
 def http_post(url, data):
     try:
         response = requests.post(url, data=json.dumps(data))
@@ -185,7 +185,7 @@ def launch_ec2_instance():
         ]
     )
     instance_id = response['Instances'][0]['InstanceId']
-    
+
     waiter = ec2_client.get_waiter('instance_running')
     waiter.wait(InstanceIds=[instance_id])
     # Wait for the instance to have an IP address
@@ -197,9 +197,9 @@ def launch_ec2_instance():
                 workers[instance_id] = instance['PublicIpAddress']
             break
         time.sleep(5)
-    
+
     ssh_and_run_code(workers[instance_id], KeyName)
-    time.sleep(5)    
+    time.sleep(5)
     url = f'http://{workers[instance_id]}:5000/instanceId'
     url2 = f'http://{workers[instance_id]}:5000/newNode'
     http_post(url, instance_id)
@@ -224,6 +224,7 @@ def get_completed_work(n):
                 work_id, output = completed_work.popitem()
             work_items.append({'work_id': work_id, 'output': output})
         return work_items
+   
     else:
         # Ask the second node for the items
         response = requests.get(nodes[1] + '/pullCompleted', params={'top': n})
@@ -232,7 +233,7 @@ def get_completed_work(n):
             return data['work_items']
         else:
             return []
-        
+
 def ssh_and_run_code(instance_ip, KeyName):
     connected = False
 
