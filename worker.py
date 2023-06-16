@@ -54,7 +54,7 @@ def http_post(url, data):
         print(f"Sending POST request to: {url}")
         print(f"Request data: {data}")
         
-        response = requests.post(url, data=data)
+        response = requests.post(url, data=json.dumps(data))
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         
         print(f"Response status code: {response.status_code}")
