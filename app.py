@@ -17,7 +17,7 @@ from paramiko.ssh_exception import NoValidConnectionsError
 init
 '''
 # Read configuration from file
-with open('config.yaml') as file:
+with open('cloud-ex2/config.yaml') as file:
     config = yaml.safe_load(file)
 
 ec2_client = boto3.client('ec2', region_name=config['EC2']['region'])
