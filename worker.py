@@ -102,26 +102,27 @@ def killMe():
     return "Killing the worker: " + str(instanceId)
 
 def loop():
-    if len(nodes) > 0 and instanceId != '':
-        last_time = datetime.now()
-        logging.info("Loop started. Last time: %s", last_time)
-        while datetime.now() - last_time <= datetime.timedelta(minutes=10):
-            for node in nodes:
-                work = http_get(f'{node}/getWork')
+    while True:
+        logger.info('entered worker loop')
+        if len(nodes) > 0 and instanceId != '':
+            last_time = datetime.datetime.now()
+            logger.info("Loop started. Last time: %s", last_time)
+            while datetime.datetime.now() - last_time <= datetime.timedelta(minutes=10):
+                for node in nodes:
+                    work = http_get(f'{node}/getWork') 
+                    
+                    if work != '' and work != None:
+                        logger.info("Received work: %s", work)
+                        result = process_work(work)
+                        http_post(f'{node}/completeWork', [result, work['work_id']])
+                        last_time = datetime.datetime.now()
+                        logger.info("Completed work item: %s", work['work_id'])
+                        continue
 
-                if work != '':
-                    logging.info("Received work: %s", work)
-                    result = process_work(work)
-                    http_post(f'{node}/completeWork', [result, work['work_id']])
-                    last_time = datetime.now
-                    logging.info("Completed work item: %s", work['work_id'])
-                    last_time = datetime.now()
-                    continue
-
+                time.sleep(10)
+            killMe()
+        else:
             time.sleep(10)
-        killMe()
-    else:
-        time.sleep(10)
 
 
 def run_server():
