@@ -178,53 +178,52 @@ def http_get(url):
         return None
 
 def launch_ec2_instance():
-    print('open worker plz')
     global workers
 
-    # response = ec2_client.run_instances(
-    #     ImageId=config['EC2']['ImageId'],
-    #     InstanceType=config['EC2']['InstanceType'],
-    #     KeyName=KeyName,
-    #     SecurityGroupIds=[config['EC2']['GroupName']],
-    #     MinCount=1,
-    #     MaxCount=1,
-    #     InstanceInitiatedShutdownBehavior='terminate',
-    #     TagSpecifications=[
-    #         {
-    #             'ResourceType': 'instance',
-    #             'Tags': [
-    #                 {
-    #                     'Key': 'Name',
-    #                     'Value': f'worker-{datetime.datetime.now()}-of-{nodes[0]}'
-    #                 },
-    #             ]
-    #         },
-    #     ]
-    # )
-    # instance_id = response['Instances'][0]['InstanceId']
+    response = ec2_client.run_instances(
+        ImageId=config['EC2']['ImageId'],
+        InstanceType=config['EC2']['InstanceType'],
+        KeyName=KeyName,
+        SecurityGroupIds=[config['EC2']['GroupName']],
+        MinCount=1,
+        MaxCount=1,
+        InstanceInitiatedShutdownBehavior='terminate',
+        TagSpecifications=[
+            {
+                'ResourceType': 'instance',
+                'Tags': [
+                    {
+                        'Key': 'Name',
+                        'Value': f'worker-{datetime.datetime.now()}-of-{nodes[0]}'
+                    },
+                ]
+            },
+        ]
+    )
+    instance_id = response['Instances'][0]['InstanceId']
 
-    # waiter = ec2_client.get_waiter('instance_running')
-    # waiter.wait(InstanceIds=[instance_id])
-    # # Wait for the instance to have an IP address
-    # while True:
-    #     response = ec2_client.describe_instances(InstanceIds=[instance_id])
-    #     instance = response['Reservations'][0]['Instances'][0]
-    #     if 'PublicIpAddress' in instance:
-    #         with lockWorkers:
-    #             workers[instance_id] = instance['PublicIpAddress']
-    #         break
-    #     time.sleep(5)
+    waiter = ec2_client.get_waiter('instance_running')
+    waiter.wait(InstanceIds=[instance_id])
+    # Wait for the instance to have an IP address
+    while True:
+        response = ec2_client.describe_instances(InstanceIds=[instance_id])
+        instance = response['Reservations'][0]['Instances'][0]
+        if 'PublicIpAddress' in instance:
+            with lockWorkers:
+                workers[instance_id] = instance['PublicIpAddress']
+            break
+        time.sleep(5)
 
-    # ssh_and_run_code(workers[instance_id], KeyName)
-    # time.sleep(5)
-    # url = f'http://{workers[instance_id]}:5000/instanceId'
-    # url2 = f'http://{workers[instance_id]}:5000/newNode'
+    ssh_and_run_code(workers[instance_id], KeyName)
+    time.sleep(5)
+    url = f'http://{workers[instance_id]}:5000/instanceId'
+    url2 = f'http://{workers[instance_id]}:5000/newNode'
     
-    # http_post(url, instance_id)
-    # print("Ran" + url)
-    # http_post(url2, nodes)
-    # print("Ran" + url2)
-    # print(f"Launched EC2 instance: {instance_id}")
+    http_post(url, instance_id)
+    print("Ran" + url)
+    http_post(url2, nodes)
+    print("Ran" + url2)
+    print(f"Launched EC2 instance: {instance_id}")
 
 def get_completed_work(n):
     global completed_work

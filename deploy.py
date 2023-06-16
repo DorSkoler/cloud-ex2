@@ -279,8 +279,6 @@ def create_key_pair(KeyName):
 
     print(f"Key pair '{KeyName}' created and saved to '{KeyName}.pem'.")
 
-
-
 def ssh_and_run_code(statuses):
     # Connect to the instances via SSH
     ssh_clients = []
@@ -315,9 +313,20 @@ def ssh_and_run_code(statuses):
     # Execute commands on instances using SSH
     for instance_id, ssh in ssh_clients:
         print(f"Executing commands on instance {instance_id}...")
+        total_commands = len(config['Commands'])
+        executed_commands = 0
         for command in config['Commands']:
             print(f"Executing command: {command}")
             stdin, stdout, stderr = ssh.exec_command(command)
+            
+            # Print the progress as a percentage
+            while not stdout.channel.exit_status_ready():
+                output = stdout.readline().strip()
+                if output:
+                    executed_commands += 1
+                    progress = executed_commands / total_commands * 100
+                    print(f"Progress: {progress:.2f}%")
+            
             print(stdout.read().decode())
             print(stderr.read().decode())
 
