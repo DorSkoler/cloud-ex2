@@ -65,21 +65,22 @@ def process_work(data):
     return output
 
 def http_post(url, data):
-    try:
-        logger.info("Sending POST request to: %s", url)
-        logger.info("Request data: %s", data)
+    with app.app_context():
+        try:
+            logger.info("Sending POST request to: %s", url)
+            logger.info("Request data: %s", data)
+            
+            response = requests.post(url, data=data)
+            response.raise_for_status()  # Raise an exception for non-2xx status codes
+            
+            logger.info("Response status code: %d", response.status_code)
+            logger.info("Response data: %s", response.text)
+            
+            return response.text
         
-        response = requests.post(url, data=data)
-        response.raise_for_status()  # Raise an exception for non-2xx status codes
-        
-        logger.info("Response status code: %d", response.status_code)
-        logger.info("Response data: %s", response.text)
-        
-        return response.text
-    
-    except requests.exceptions.RequestException as e:
-        logger.error("An error occurred: %s", e)
-        return None
+        except requests.exceptions.RequestException as e:
+            logger.error("An error occurred: %s", e)
+            return None
 
 def http_get(url):
     try:
