@@ -143,8 +143,9 @@ def giveWork():
     if len(queue) > 0:
         response = ''
         with lockQueue:
-            response = queue.pop()
-        return (json.dumps(response), 200)
+            response = jsonify(queue.pop())
+        logger.log(f"trying to send: {response}")
+        return (response, 200)
     else:
         response = jsonify('')
         return response
