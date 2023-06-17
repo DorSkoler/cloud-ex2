@@ -50,11 +50,11 @@ def getNewNode():
 
 def process_work(data):
     # Get the next work item from the queue
-    buffer = data['buffer']
-    iterations = int(data['iterations'])
+    buffer = data[0]
+    iterations = int(data[1])
     logger.info("Processing work item:")
-    logger.info("Buffer: %s", buffer)
-    logger.info("Iterations: %d", iterations)
+    logger.info(f"Buffer: {buffer}")
+    logger.info(f"Iterations: {iterations}")
     # Perform the computation
     encoded_buffer = buffer.encode('utf-8')
     output = hashlib.sha512(encoded_buffer).digest()
@@ -98,6 +98,7 @@ def http_get(url):
         return None
 
 def killMe():
+    http_post(f'{nodes[0]}/notifyKilled', data=instanceId)
     os.system('sudo shutdown -h now')
     return "Killing the worker: " + str(instanceId)
 
