@@ -102,7 +102,7 @@ routes
 '''
 @app.route('/enqueue', methods=['PUT'])
 def enqueue_work():
-    buffer = request.data
+    buffer = json.loads(request.data)
     iterations = int(request.args.get('iterations', 1))
     work_id = str(uuid.uuid4())
     work = (buffer, iterations, work_id, datetime.datetime.now())
@@ -136,6 +136,11 @@ def TryGetNodeQuota():
             maxNumOfWorkers -= 1
         return True
     return False
+
+@app.route('/notifyKilled', methods=['POST'])
+def workerKilledInAction():
+    global workers
+    instanceId = json.loads(request.data)
 
 @app.route('/getWork', methods=['GET'])
 def giveWork():
