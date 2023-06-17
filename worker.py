@@ -70,7 +70,7 @@ def http_post(url, data):
             logger.info("Sending POST request to: %s", url)
             logger.info("Request data: %s", data)
             
-            response = request.post(url, data=jsonify(data))
+            response = requests.post(url, data=data)
             response.raise_for_status()  # Raise an exception for non-2xx status codes
             
             logger.info("Response status code: %d", response.status_code)
