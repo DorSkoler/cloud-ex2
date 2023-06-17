@@ -69,7 +69,7 @@ def http_post(url, data):
         logger.info("Sending POST request to: %s", url)
         logger.info("Request data: %s", data)
         
-        response = requests.post(url, data=jsonify(data))
+        response = requests.post(url, data=data)
         response.raise_for_status()  # Raise an exception for non-2xx status codes
         
         logger.info("Response status code: %d", response.status_code)
@@ -98,7 +98,7 @@ def http_get(url):
         return None
 
 def killMe():
-    http_post(f'{nodes[0]}/notifyKilled', data=instanceId)
+    http_post(f'{nodes[0]}/notifyKilled', data=json.dumps(instanceId))
     os.system('sudo shutdown -h now')
     return "Killing the worker: " + str(instanceId)
 
@@ -115,7 +115,7 @@ def loop():
                     if work != '' and work != None:
                         logger.info("Received work: %s", work)
                         result = process_work(work)
-                        http_post(f'{node}/completeWork', [result, work[2]])
+                        http_post(f'{node}/completeWork', jsonify((result, work[2])))
                         last_time = datetime.datetime.now()
                         logger.info("Completed work item: %s", work[2])
                         continue
