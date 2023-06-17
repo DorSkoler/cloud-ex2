@@ -85,7 +85,7 @@ def check_workers():
     while True:
         # Perform the worker checking logic here
         logger.info("Checking workers...")
-        time.sleep(30)  # Sleep for 30 seconds between each check
+        time.sleep(60)  # Sleep for 60 seconds between each check
         if len(queue) > 0:
             if datetime.datetime.now() - queue[-1][3] > datetime.timedelta(seconds=15):
                 if len(workers) < maxNumOfWorkers:
@@ -121,7 +121,13 @@ def enqueue_work():
 @app.route('/pullCompleted', methods=['POST'])
 def pull_completed_work():
     top = int(request.args.get('top', 1))
-    work_items = get_completed_work(top)
+    work_items = get_completed_work(top, True)
+    return jsonify({'work_items': work_items})
+
+@app.route('/pullCompletedNode', methods=['POST'])
+def pull_completed_work_node():
+    top = int(request.args.get('top', 1))
+    work_items = get_completed_work(top, False)
     return jsonify({'work_items': work_items})
 
 @app.route('/ip', methods=['POST'])
@@ -258,7 +264,7 @@ def launch_ec2_instance():
     logger.info("Ran" + url2)
     logger.info(f"Launched EC2 instance: {instance_id}")
 
-def get_completed_work(n):
+def get_completed_work(n, askOtherNode):
     global completed_work
     if len(completed_work) >= n:
         # Get n items from completed_work
@@ -278,11 +284,14 @@ def get_completed_work(n):
         return work_items
    
     else:
-        # Ask the second node for the items
-        response = requests.post(nodes[1] + '/pullCompleted', params={'top': n})
-        if response.status_code == 200:
-            data = response.json()
-            return data['work_items']
+        if askOtherNode:
+            # Ask the second node for the items
+            response = requests.post(nodes[1] + '/pullCompleted', params={'top': n})
+            if response.status_code == 200:
+                data = response.json()
+                return data['work_items']
+            else:
+                return []
         else:
             return []
 
