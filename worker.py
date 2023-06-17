@@ -115,7 +115,7 @@ def loop():
                     if work != '' and work != None:
                         logger.info("Received work: %s", work)
                         result = process_work(work)
-                        http_post(f'{node}/completeWork', [result, work['work_id']])
+                        http_post(f'{node}/completeWork', json.dumps([result, work['work_id']]))
                         last_time = datetime.datetime.now()
                         logger.info("Completed work item: %s", work['work_id'])
                         continue
