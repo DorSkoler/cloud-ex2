@@ -70,6 +70,9 @@ lockNum = threading.Lock()
 lockComplete = threading.Lock()
 lockQueue = threading.Lock()
 
+app.logger.handlers = logger.handlers
+app.logger.setLevel(logger.level)
+
 '''
 main functions
 '''
@@ -276,7 +279,7 @@ def get_completed_work(n):
    
     else:
         # Ask the second node for the items
-        response = requests.get(nodes[1] + '/pullCompleted', params={'top': n})
+        response = requests.post(nodes[1] + '/pullCompleted', params={'top': n})
         if response.status_code == 200:
             data = response.json()
             return data['work_items']
