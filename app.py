@@ -86,6 +86,7 @@ def check_workers():
         if len(queue) > 0:
             if datetime.datetime.now() - queue[-1][3] > datetime.timedelta(seconds=15):
                 if len(workers) < maxNumOfWorkers:
+                    logger.info(f"creating worker number {len(workers) + 1}")
                     launch_ec2_instance()
                 else:
                     try:
