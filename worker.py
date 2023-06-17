@@ -49,20 +49,27 @@ def getNewNode():
     return 'Added newNode'
 
 def process_work(data):
-    # Get the next work item from the queue
     buffer = data[0]
     iterations = int(data[1])
+    work_id = data[2]
+    timestamp = data[3]
+
     logger.info("Processing work item:")
     logger.info(f"Buffer: {buffer}")
     logger.info(f"Iterations: {iterations}")
-    # Perform the computation
-    encoded_buffer = buffer.encode('utf-8')
-    output = hashlib.sha512(encoded_buffer).digest()
-    for i in range(iterations - 1):
-        output = hashlib.sha512(output).digest()
+    logger.info(f"Work ID: {work_id}")
+    logger.info(f"Timestamp: {timestamp}")
 
-    # Store the completed work item
-    return output
+    # Hash the buffer using SHA-256
+    hash_object = hashlib.sha256(buffer.encode())
+    hash_result = hash_object.hexdigest()
+
+    # Perform additional hash iterations
+    for _ in range(iterations):
+        hash_object = hashlib.sha256(hash_result.encode())
+        hash_result = hash_object.hexdigest()
+
+    return hash_result
 
 def http_post(url, data):
     try:
@@ -117,7 +124,7 @@ def loop():
                         result = process_work(work)
                         logger.info(f"complete work: {result}")
                         time.sleep(10)
-                        http_post(f'{node}/completeWork', [result.decode('utf-8'), work[2]])
+                        http_post(f'{node}/completeWork', [result, work[2]])
                         last_time = datetime.datetime.now()
                         logger.info("Completed work item: %s", work[2])
                         continue
