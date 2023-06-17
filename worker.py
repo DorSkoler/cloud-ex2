@@ -116,7 +116,8 @@ def loop():
                         logger.info("Received work: %s", work)
                         result = process_work(work)
                         logger.info(f"complete work: {result}")
-                        http_post(f'{node}/completeWork', [result, work[2]])
+                        time.sleep(10)
+                        http_post(f'{node}/completeWork', [result.decode('utf-8'), work[2]])
                         last_time = datetime.datetime.now()
                         logger.info("Completed work item: %s", work[2])
                         continue
