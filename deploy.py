@@ -318,16 +318,7 @@ def ssh_and_run_code(statuses):
         for command in config['Commands']:
             print(f"Executing command: {command}")
             stdin, stdout, stderr = ssh.exec_command(command)
-            
-            # Print the progress as a percentage
-            while not stdin.channel.exit_status_ready():
-                output = stdin.readline().strip()
-                if output:
-                    executed_commands += 1
-                    progress = executed_commands / total_commands * 100
-                    print(f"Progress: {progress:.2f}%")
-            
-            print(stdout.read().decode())
+            # print(stdout.read().decode())
             print(stderr.read().decode())
 
     # Close SSH connections

@@ -125,7 +125,7 @@ def getIp():
     global nodes
     with lockNodes:
         nodes = json.loads(request.data)
-    logger.info("Nodes server:", nodes)
+    logger.info(f"Nodes server: {nodes}")
     return jsonify('Added nodes')
 
 @app.route('/getQueueLen', methods=['GET'])
