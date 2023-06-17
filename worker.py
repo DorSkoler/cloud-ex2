@@ -65,22 +65,21 @@ def process_work(data):
     return output
 
 def http_post(url, data):
-    with app.app_context():
-        try:
-            logger.info("Sending POST request to: %s", url)
-            logger.info("Request data: %s", data)
-            
-            response = requests.post(url, data=data)
-            response.raise_for_status()  # Raise an exception for non-2xx status codes
-            
-            logger.info("Response status code: %d", response.status_code)
-            logger.info("Response data: %s", response.text)
-            
-            return response.text
+    try:
+        logger.info(f"Sending POST request to: {url}")
+        logger.info(f"Request data: {data}")
         
-        except requests.exceptions.RequestException as e:
-            logger.error("An error occurred: %s", e)
-            return None
+        response = requests.post(url, data=json.dumps(data))
+        response.raise_for_status()  # Raise an exception for non-2xx status codes
+        
+        logger.info(f"Response status code: {response.status_code}")
+        logger.info(f"Response data: {response.text}")
+        
+        return response.text
+    
+    except requests.exceptions.RequestException as e:
+        logger.error(f"An error occurred: {e}")
+        return None
 
 def http_get(url):
     try:
@@ -117,7 +116,7 @@ def loop():
                         logger.info("Received work: %s", work)
                         result = process_work(work)
                         logger.info(f"complete work: {result}")
-                        http_post(f'{node}/completeWork', (result, work[2]))
+                        http_post(f'{node}/completeWork', [result, work[2]])
                         last_time = datetime.datetime.now()
                         logger.info("Completed work item: %s", work[2])
                         continue
