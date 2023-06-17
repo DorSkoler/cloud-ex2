@@ -141,6 +141,9 @@ def TryGetNodeQuota():
 def workerKilledInAction():
     global workers
     instanceId = json.loads(request.data)
+    with lockWorkers:
+        del workers[instanceId]
+    logger.log(f"worker {instanceId} killed in action")
 
 @app.route('/getWork', methods=['GET'])
 def giveWork():
@@ -149,7 +152,6 @@ def giveWork():
         response = ''
         with lockQueue:
             response = jsonify(queue.pop())
-        logger.log(f"trying to send: {response}")
         return (response, 200)
     else:
         response = jsonify('')
