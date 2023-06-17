@@ -144,7 +144,7 @@ def giveWork():
         response = ''
         with lockQueue:
             response = queue.pop()
-        return (response, 200)
+        return (json.dumps(response), 200)
     else:
         response = jsonify('')
         return response
