@@ -123,7 +123,7 @@ def loop():
                         logger.info("Received work: %s", work)
                         result = process_work(work)
                         logger.info(f"complete work: {result}")
-                        time.sleep(10)
+                        time.sleep(2)
                         http_post(f'{node}/completeWork', [result, work[2]])
                         last_time = datetime.datetime.now()
                         logger.info("Completed work item: %s", work[2])
