@@ -62,7 +62,7 @@ completed_work = {}
 # The paths to reach both nodes
 nodes = []
 workers = {}
-maxNumOfWorkers = 1
+maxNumOfWorkers = 5
 
 lockNodes = threading.Lock()
 lockWorkers = threading.Lock()
@@ -86,18 +86,20 @@ def check_workers():
         if (len(workers) == 0):
             time.sleep(5)  # Sleep for 60 seconds between each check
         else: 
-            time.sleep(180)
+            time.sleep(150)
         if len(queue) > 0:
-            if datetime.datetime.now() - queue[-1][3] > datetime.timedelta(seconds=15):
+            if datetime.datetime.now() - queue[0][3] > datetime.timedelta(seconds=15):
                 if len(workers) < maxNumOfWorkers:
                     logger.info(f"creating worker number {len(workers) + 1}")
                     launch_ec2_instance()
                 else:
                     try:
                         response = http_get(nodes[1] + '/getQueueLen')
-                        if response.status_code == 200:
+                        if response == "True":
                             with lockNum:
                                 maxNumOfWorkers += 1
+                            logger.info(f"creating worker number {len(workers) + 1}")
+                            launch_ec2_instance()
                     except requests.exceptions.RequestException as e:
                         logger.error(f"An error occurred during HTTP request: {e}")
 
