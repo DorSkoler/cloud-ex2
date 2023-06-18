@@ -97,7 +97,7 @@ def check_workers():
                 else:
                     try:
                         response = http_get(nodes[1] + '/getQueueLen')
-                        if response:
+                        if response.status_code == 200:
                             with lockNum:
                                 maxNumOfWorkers += 1
                     except requests.exceptions.RequestException as e:
