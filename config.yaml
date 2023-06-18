@@ -15,7 +15,7 @@ Commands:
   - git clone https://github.com/DorSkoler/cloud-ex2.git
   - cd cloud-ex2 && git pull
   - sudo pip3 install -r cloud-ex2/requirements.txt
-  - nohup sudo python3 cloud-ex2/app.py --port 5000 > app.log 2>&1 &
+  - nohup sudo python3 cloud-ex2/app.py --port 5000 > appFlask.log 2>&1 &
   - echo Running Application
 
 CommandsWorker:
@@ -24,5 +24,5 @@ CommandsWorker:
   - git clone https://github.com/DorSkoler/cloud-ex2.git
   - cd cloud-ex2 && git pull
   - sudo pip3 install -r cloud-ex2/requirements.txt
-  - nohup sudo python3 cloud-ex2/worker.py --port 5000 > worker.log 2>&1 &
+  - nohup sudo python3 cloud-ex2/worker.py --port 5000 > workerFlask.log 2>&1 &
   - echo Running Application
