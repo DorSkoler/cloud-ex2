@@ -62,7 +62,7 @@ completed_work = {}
 # The paths to reach both nodes
 nodes = []
 workers = {}
-maxNumOfWorkers = 5
+maxNumOfWorkers = 1
 
 lockNodes = threading.Lock()
 lockWorkers = threading.Lock()
