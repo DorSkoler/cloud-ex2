@@ -105,7 +105,7 @@ def http_get(url):
         return None
 
 def killMe():
-    http_post(f'{nodes[0]}/notifyKilled', data=json.dumps(instanceId))
+    http_post(f'{nodes[0]}/notifyKilled', data=instanceId)
     os.system('sudo shutdown -h now')
     return "Killing the worker: " + str(instanceId)
 
