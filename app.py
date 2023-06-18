@@ -85,7 +85,10 @@ def check_workers():
     while True:
         # Perform the worker checking logic here
         logger.info("Checking workers...")
-        time.sleep(60)  # Sleep for 60 seconds between each check
+        if (len(workers) == 0):
+            time.sleep(5)  # Sleep for 60 seconds between each check
+        else: 
+            time.sleep(180)
         if len(queue) > 0:
             if datetime.datetime.now() - queue[-1][3] > datetime.timedelta(seconds=15):
                 if len(workers) < maxNumOfWorkers:
