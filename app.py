@@ -159,7 +159,6 @@ def workerKilledInAction():
     else:
         return (jsonify('not exists'), 404)
     
-
 @app.route('/getWork', methods=['GET'])
 def giveWork():
     global queue
@@ -286,7 +285,7 @@ def get_completed_work(n, askOtherNode):
     else:
         if askOtherNode:
             # Ask the second node for the items
-            response = requests.post(nodes[1] + '/pullCompleted', params={'top': n})
+            response = requests.post(nodes[1] + '/pullCompletedNode', params={'top': n})
             if response.status_code == 200:
                 data = response.json()
                 return data['work_items']
