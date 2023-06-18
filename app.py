@@ -147,8 +147,8 @@ def TryGetNodeQuota():
     if len(workers) < maxNumOfWorkers:
         with lockNum:
             maxNumOfWorkers -= 1
-        return True
-    return False
+        return ("True", 200)
+    return ("False", 404)
 
 @app.route('/notifyKilled', methods=['POST'])
 def workerKilledInAction():
