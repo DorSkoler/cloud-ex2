@@ -70,8 +70,6 @@ lockNum = threading.Lock()
 lockComplete = threading.Lock()
 lockQueue = threading.Lock()
 
-app.logger.handlers = logger.handlers
-app.logger.setLevel(logger.level)
 
 '''
 main functions
