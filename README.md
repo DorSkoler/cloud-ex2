@@ -54,6 +54,9 @@ Refer to the server and worker code files for more details on the API endpoints 
 
 The Distributed Hashing System is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
+## Creators
+
+Dor Skoler and Yon garber - the ones who were always in class 
 ---
 
 This README file provides an overview of the project, installation instructions, usage guidelines, API endpoints, contributing information, license details, and contact information. You can customize it further to include specific details about your project and its functionalities.
