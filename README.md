@@ -1,6 +1,6 @@
-# Distributed Hashing System
+# Dynamic Workload System
 
-The Distributed Hashing System is a server-worker architecture that performs distributed hashing computations. It consists of a server and multiple worker nodes that collaborate to process hash computations efficiently.
+The Dynamic Workload System is a server-worker architecture that performs distributed hashing computations. It consists of a server and multiple worker nodes that collaborate to process hash computations efficiently.
 
 ## Features
 
@@ -8,7 +8,7 @@ The Distributed Hashing System is a server-worker architecture that performs dis
 - **Worker Nodes:** Worker nodes perform the actual hashing computations based on the work assigned by the server.
 - **Dynamic Scaling:** The system dynamically scales the number of worker nodes based on the workload and availability.
 - **Fault Tolerance:** The system can handle failures by redistributing the work among available worker nodes.
-- **RESTful API:** The system provides a RESTful API for enqueueing work, retrieving completed work, and managing the system.
+- **RESTful API:** The system provides a RESTful API for enqueueing work and retrieving completed work.
 
 ## Prerequisites
 
@@ -27,13 +27,13 @@ You also need to configure your AWS credentials to use the EC2 service for launc
 1. Clone the repository: `git clone <repository-url>`
 2. Install the dependencies: `pip install -r requirements.txt`
 3. Configure your AWS credentials: [AWS CLI Configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
-4. Update the `config.yaml` file with your desired configuration parameters.
+4. Update the `config.yaml` file with your desired configuration parameters (no need for testing).
 
 ## Usage
 
-1. Start the server by running the following command: `python app.py`
-2. Start the worker nodes by running the following command: `python worker.py`
-3. To deploy it to AWS use: `python deploy.py`
+1. To deploy the code to AWS and run the application use: `python deploy.py`
+2. To Start the server by running the following command: `python app.py`
+3. To Start the worker nodes by running the following command: `python worker.py`
 
 Once the server and worker nodes are running, you can enqueue work items and retrieve completed work using the provided RESTful API endpoints.
 
