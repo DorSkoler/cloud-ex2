@@ -261,9 +261,9 @@ def launch_ec2_instance():
     url2 = f'http://{workers[instance_id]}:5000/newNode'
     
     http_post(url, instance_id)
-    logger.info("Ran" + url)
+    logger.info("Ran " + url)
     http_post(url2, nodes)
-    logger.info("Ran" + url2)
+    logger.info("Ran " + url2)
     logger.info(f"Launched EC2 instance: {instance_id}")
 
 def get_completed_work(n, askOtherNode):
