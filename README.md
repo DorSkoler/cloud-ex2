@@ -56,7 +56,7 @@ The Distributed Hashing System is licensed under the [MIT License](https://opens
 
 ## Creators
 
-Dor Skoler and Yon Garber - the ones who always attend class 
+Dor Skoler and Yon Garber - the ones who always attend class and it is shown in the project :)
 
 ---
 
